@@ -109,7 +109,7 @@ int main(int argc, char **argv)
 {
     WHBProcInit();
     WHBLogConsoleInit();
-    WHBLogConsoleSetColor(0x000000FF);
+    WHBLogConsoleSetColor(0x000000FF); // Black background
     WHBLogConsoleDraw();
 
     // Initialize kb_cols safely
