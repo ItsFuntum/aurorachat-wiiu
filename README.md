@@ -1,6 +1,11 @@
 # **Wii U Client for [aurorachat](https://github.com/mii-man/aurorachat)**
 *Not affiliated with mii-man or the aurorachat project*
 
+# How to use
+The Wii U Client is still in development but if you would like to test it before release you could download [aurorachat.elf](aurorachat.elf) or [aurorachat.rpx](aurorachat.rpx) and load it natively on a Wii U or in Cemu
+
+Alternatively you can clone the repository and make your own build
+
 > <h1>PLEASE USE "LETS CHAT" INSTEAD OF THIS. AURORACHAT IS KIND OF JANKY</h1>
 > 
 > <h2>Update Log (All versions that have the word "un-released" were never released, and all versions that have the word "indev" meant they are in development)</h2>
