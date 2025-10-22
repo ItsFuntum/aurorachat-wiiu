@@ -1,11 +1,11 @@
-# **⚠️Unofficial Wii U repository for aurorachat**
+# **Wii U Client for [aurorachat](https://github.com/mii-man/aurorachat)**
 *Not affiliated with mii-man or the aurorachat project*
 
 > <h1>PLEASE USE "LETS CHAT" INSTEAD OF THIS. AURORACHAT IS KIND OF JANKY</h1>
 > 
 > <h2>Update Log (All versions that have the word "un-released" were never released, and all versions that have the word "indev" meant they are in development)</h2>
 > 
-> v0.0.1 unreleased indev - Full Code Revamp due to me realising that citro2d has better text than the console. Also added a messsage sound from LINE (the texting app) to make the message sound.
+> v0.0.1 unreleased indev - Full Code Revamp due to me realising that citro2d has better text than the console. Also added a messsage sound from LINE (the texting app) to make the message sound. (Edit as of 10/22/25 AEDT: I'm using self made sound effects for sending and receiving messages)
 > 
 > v0.0.0 unreleased - I have no idea.
 > 
