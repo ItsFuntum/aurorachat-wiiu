@@ -21,7 +21,7 @@ static const char *KB_ROWS_LOWER[] = {
     "qwertyuiop",
     "asdfghjkl;",
     "zxcvbnm,./",
-    " "      // dedicated space row
+    " |" // | = Send button
 };
 
 static const char *KB_ROWS_UPPER[] = {
@@ -29,7 +29,7 @@ static const char *KB_ROWS_UPPER[] = {
     "QWERTYUIOP",
     "ASDFGHJKL:",
     "ZXCVBNM<>?",
-    " "
+    " |" // | = Send button
 };
 
 static int kb_rows = 5;
@@ -83,11 +83,15 @@ void render_keyboard(const char *input, int in_len, int shift, int sel_row, int 
             if (r == sel_row && c == sel_col) {
                 if (ch == ' ')
                     pos += snprintf(line + pos, sizeof(line)-pos, "[SPACE]");
+                else if (ch == '|')
+                    pos += snprintf(line + pos, sizeof(line)-pos, "[SEND]");
                 else
                     pos += snprintf(line + pos, sizeof(line)-pos, "[%c]", ch);
             } else {
                 if (ch == ' ')
-                    pos += snprintf(line + pos, sizeof(line)-pos, "     ");
+                    pos += snprintf(line + pos, sizeof(line)-pos, " SPACE ");
+                else if (ch == '|')
+                    pos += snprintf(line + pos, sizeof(line)-pos, " SEND ");
                 else
                     pos += snprintf(line + pos, sizeof(line)-pos, " %c ", ch);
             }
@@ -95,11 +99,52 @@ void render_keyboard(const char *input, int in_len, int shift, int sel_row, int 
         WHBLogPrintf("%s\n", line);
     }
 
+    WHBLogPrintf("\n");
     WHBLogPrintf("\nD-PAD=move | A=type | B=backspace | X=shift");
-    WHBLogPrintf("\nY/PLUS=send | HOME=exit");
+    WHBLogPrintf("\nPLUS=quick send | HOME=exit");
 
     // Draw everything
     WHBLogConsoleDraw();
+}
+
+void send_chat_line(int *sock, int *in_len, char *input) {
+    if (*in_len > 0) {
+        if (*sock >= 0) {
+            char sendbuf[600];
+            snprintf(sendbuf, sizeof(sendbuf), "%s\n", input);
+            if (send(*sock, sendbuf, strlen(sendbuf), 0) >= 0) {
+                *in_len = 0;
+                input[0] = '\0';
+            }
+        } else {
+            add_chat_line("Send failed, trying to reconnect...");
+
+            // Close old socket
+            if (*sock >= 0) close(*sock);
+            *sock = -1;
+
+            // Reconnect
+            *sock = socket(AF_INET, SOCK_STREAM, 0);
+            if (*sock < 0) {
+                add_chat_line("Failed to create socket");
+                return;
+            }
+
+            struct sockaddr_in serverAddr;
+            memset(&serverAddr, 0, sizeof(serverAddr));
+            serverAddr.sin_family = AF_INET;
+            serverAddr.sin_port = htons(SERVER_PORT);
+            serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
+
+            if (connect(*sock, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == 0) {
+                add_chat_line("Reconnected successfully!");
+            } else {
+                add_chat_line("Failed to reconnect, try again.");
+                close(*sock);
+                *sock = -1;
+            }
+        }
+    }
 }
 
 // -----------------------
@@ -174,7 +219,9 @@ int main(int argc, char **argv)
             if (vpad.trigger & VPAD_BUTTON_A) {
                 const char *rowStr = shift ? KB_ROWS_UPPER[sel_row] : KB_ROWS_LOWER[sel_row];
                 char ch = rowStr[sel_col];
-                if (in_len < (int)sizeof(input)-2) {
+                if (ch == '|') {
+                    send_chat_line(&sock, &in_len, input);
+                } else if (in_len < (int)sizeof(input)-2) {
                     input[in_len++] = ch;
                     input[in_len] = '\0';
                 }
@@ -191,47 +238,8 @@ int main(int argc, char **argv)
             }
 
             // Y / PLUS = send
-            if ((vpad.trigger & VPAD_BUTTON_Y) || (vpad.trigger & VPAD_BUTTON_PLUS)) {
-                if (in_len > 0) {
-                    if (sock >= 0) {
-                        char sendbuf[600];
-                        snprintf(sendbuf, sizeof(sendbuf), "%s\n", input);
-                        if (send(sock, sendbuf, strlen(sendbuf), 0) >= 0) {
-                            in_len = 0;
-                            input[0] = '\0';
-                        }
-                    } else {
-                        add_chat_line("Send failed, trying to reconnect...");
-                        render_keyboard(input, in_len, shift, sel_row, sel_col); // Render before attempting reconnect
-                        
-                        // Close the old socket
-                        if (sock >= 0) close(sock);
-                        sock = -1;
-                        
-                        // Try to reconnect
-                        sock = socket(AF_INET, SOCK_STREAM, 0);
-                        if (sock < 0) {
-                            add_chat_line("Failed to create socket");
-                            break;
-                        }
-                    
-                        struct sockaddr_in serverAddr;
-                        memset(&serverAddr, 0, sizeof(serverAddr));
-                        serverAddr.sin_family = AF_INET;
-                        serverAddr.sin_port = htons(SERVER_PORT);
-                        serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
-                    
-                        if (connect(sock, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == 0) {
-                            add_chat_line("Reconnected successfully!\n");
-                            break;
-                        } else {
-                            add_chat_line("Failed to reconnect, try again.");
-                            render_keyboard(input, in_len, shift, sel_row, sel_col);
-                            close(sock);
-                            sock = -1;
-                        }
-                    }
-                }
+            if ((vpad.trigger & VPAD_BUTTON_PLUS)) {
+                send_chat_line(&sock, &in_len, input);
             }
         }
 
