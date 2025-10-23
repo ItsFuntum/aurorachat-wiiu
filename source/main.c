@@ -198,8 +198,6 @@ int main(int argc, char **argv)
         VPADRead(0, &vpad, 1, &error);
 
         if (error == VPAD_READ_SUCCESS) {
-            if (vpad.hold & VPAD_BUTTON_HOME) break;
-
             // D-pad navigation
             if (vpad.trigger & VPAD_BUTTON_UP) {
                 sel_row = (sel_row - 1 + kb_rows) % kb_rows; if (sel_col >= kb_cols[sel_row]) sel_col = kb_cols[sel_row]-1;
