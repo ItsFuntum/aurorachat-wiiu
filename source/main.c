@@ -103,7 +103,6 @@ void render_keyboard(const char *input, int in_len, int shift, int sel_row, int 
     WHBLogPrintf("\nD-PAD=move | A=type | B=backspace | X=shift");
     WHBLogPrintf("\nPLUS=quick send | HOME=exit");
 
-    // Draw everything
     WHBLogConsoleDraw();
 }
 
