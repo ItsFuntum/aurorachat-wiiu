@@ -11,7 +11,7 @@
 #include <stdio.h>
 
 #define SERVER_IP "127.0.0.1"
-#define SERVER_PORT 9000
+#define SERVER_PORT 8961
 
 // -----------------------
 // Keyboard layout (5 rows)
@@ -180,16 +180,17 @@ int main(int argc, char **argv)
 
             // Y / PLUS = send
             if ((vpad.trigger & VPAD_BUTTON_Y) || (vpad.trigger & VPAD_BUTTON_PLUS)) {
-                if (sock >= 0 && in_len > 0) {
-                    char sendbuf[600];
-                    snprintf(sendbuf, sizeof(sendbuf), "%s\n", input);
-                    if (send(sock, sendbuf, strlen(sendbuf), 0) >= 0) {
-                        add_chat_line(input);
-                        in_len = 0;
-                        input[0] = '\0';
+                if (sock >= 0) {
+                    if (in_len > 0) {
+                        char sendbuf[600];
+                        snprintf(sendbuf, sizeof(sendbuf), "%s\n", input);
+                        if (send(sock, sendbuf, strlen(sendbuf), 0) >= 0) {
+                            in_len = 0;
+                            input[0] = '\0';
+                        }
                     } else {
                         add_chat_line("Send failed, trying to reconnect...");
-                        render_keyboard(input, in_len, shift, sel_row, sel_col);
+                        render_keyboard(input, in_len, shift, sel_row, sel_col); // Render before attempting reconnect
                     
                         // Close the old socket
                         if (sock >= 0) close(sock);
@@ -214,6 +215,7 @@ int main(int argc, char **argv)
                                 break;  // success
                             } else {
                                 add_chat_line("Reconnect attempt failed...");
+                                render_keyboard(input, in_len, shift, sel_row, sel_col); // Render before sleep
                                 close(sock);
                                 sock = -1;
                                 OSSleepTicks(OSMillisecondsToTicks(1000)); // wait 1 second before next attempt
@@ -221,7 +223,7 @@ int main(int argc, char **argv)
                         }
                     
                         if (sock < 0) {
-                            add_chat_line("Failed to reconnect, giving up.");
+                            add_chat_line("Failed to reconnect, try again.");
                         }
                     }
                 }
