@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # **Wii U Client for [aurorachat](https://github.com/mii-man/aurorachat)**
 *Not affiliated with mii-man or the aurorachat project*
 
@@ -35,4 +34,3 @@ A chatting application for the Nintendo 3DS and 2DS line of systems
 <h2>Welcome to the AuroraChat Repository!</h2>
 <p>If you want to help me with this project, then sure! You can do that :D</p>
 <p>Again, please look at VirtuallyExisting's profile as he inspired me to make this, and he is making a successor to hbchat.</p>
->>>>>>> upstream/main
