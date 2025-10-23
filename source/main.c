@@ -180,51 +180,42 @@ int main(int argc, char **argv)
 
             // Y / PLUS = send
             if ((vpad.trigger & VPAD_BUTTON_Y) || (vpad.trigger & VPAD_BUTTON_PLUS)) {
-                if (sock >= 0) {
-                    if (in_len > 0) {
-                        char sendbuf[600];
-                        snprintf(sendbuf, sizeof(sendbuf), "%s\n", input);
-                        if (send(sock, sendbuf, strlen(sendbuf), 0) >= 0) {
-                            in_len = 0;
-                            input[0] = '\0';
-                        }
+                if (sock >= 0 && in_len > 0) {
+                    char sendbuf[600];
+                    snprintf(sendbuf, sizeof(sendbuf), "%s\n", input);
+                    if (send(sock, sendbuf, strlen(sendbuf), 0) >= 0) {
+                        in_len = 0;
+                        input[0] = '\0';
+                    }
+                } else {
+                    add_chat_line("Send failed, trying to reconnect...");
+                    render_keyboard(input, in_len, shift, sel_row, sel_col); // Render before attempting reconnect
+                
+                    // Close the old socket
+                    if (sock >= 0) close(sock);
+                    sock = -1;
+                
+                    // Try to reconnect
+                    sock = socket(AF_INET, SOCK_STREAM, 0);
+                    if (sock < 0) {
+                        add_chat_line("Failed to create socket");
+                        break;
+                    }
+                
+                    struct sockaddr_in serverAddr;
+                    memset(&serverAddr, 0, sizeof(serverAddr));
+                    serverAddr.sin_family = AF_INET;
+                    serverAddr.sin_port = htons(SERVER_PORT);
+                    serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
+                
+                    if (connect(sock, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == 0) {
+                        add_chat_line("Reconnected successfully!\n");
+                        break;
                     } else {
-                        add_chat_line("Send failed, trying to reconnect...");
-                        render_keyboard(input, in_len, shift, sel_row, sel_col); // Render before attempting reconnect
-                    
-                        // Close the old socket
-                        if (sock >= 0) close(sock);
+                        add_chat_line("Failed to reconnect, try again.");
+                        render_keyboard(input, in_len, shift, sel_row, sel_col);
+                        close(sock);
                         sock = -1;
-                    
-                        // Try to reconnect up to 3 times
-                        for (int attempt = 1; attempt <= 3; ++attempt) {
-                            sock = socket(AF_INET, SOCK_STREAM, 0);
-                            if (sock < 0) {
-                                add_chat_line("Failed to create socket");
-                                break;
-                            }
-                        
-                            struct sockaddr_in serverAddr;
-                            memset(&serverAddr, 0, sizeof(serverAddr));
-                            serverAddr.sin_family = AF_INET;
-                            serverAddr.sin_port = htons(SERVER_PORT);
-                            serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
-                        
-                            if (connect(sock, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == 0) {
-                                add_chat_line("Reconnected successfully!");
-                                break;  // success
-                            } else {
-                                add_chat_line("Reconnect attempt failed...");
-                                render_keyboard(input, in_len, shift, sel_row, sel_col); // Render before sleep
-                                close(sock);
-                                sock = -1;
-                                OSSleepTicks(OSMillisecondsToTicks(1000)); // wait 1 second before next attempt
-                            }
-                        }
-                    
-                        if (sock < 0) {
-                            add_chat_line("Failed to reconnect, try again.");
-                        }
                     }
                 }
             }
