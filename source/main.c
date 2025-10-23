@@ -157,10 +157,18 @@ int main(int argc, char **argv)
             if (vpad.hold & VPAD_BUTTON_HOME) break;
 
             // D-pad navigation
-            if (vpad.trigger & VPAD_BUTTON_UP) { sel_row = (sel_row - 1 + kb_rows) % kb_rows; if (sel_col >= kb_cols[sel_row]) sel_col = kb_cols[sel_row]-1; }
-            if (vpad.trigger & VPAD_BUTTON_DOWN) { sel_row = (sel_row + 1) % kb_rows; if (sel_col >= kb_cols[sel_row]) sel_col = kb_cols[sel_row]-1; }
-            if (vpad.trigger & VPAD_BUTTON_LEFT) { sel_col = (sel_col - 1 + kb_cols[sel_row]) % kb_cols[sel_row]; }
-            if (vpad.trigger & VPAD_BUTTON_RIGHT) { sel_col = (sel_col + 1) % kb_cols[sel_row]; }
+            if (vpad.trigger & VPAD_BUTTON_UP) {
+                sel_row = (sel_row - 1 + kb_rows) % kb_rows; if (sel_col >= kb_cols[sel_row]) sel_col = kb_cols[sel_row]-1;
+            }
+            if (vpad.trigger & VPAD_BUTTON_DOWN) {
+                sel_row = (sel_row + 1) % kb_rows; if (sel_col >= kb_cols[sel_row]) sel_col = kb_cols[sel_row]-1;
+            }
+            if (vpad.trigger & VPAD_BUTTON_LEFT) {
+                sel_col = (sel_col - 1 + kb_cols[sel_row]) % kb_cols[sel_row];
+            }
+            if (vpad.trigger & VPAD_BUTTON_RIGHT) {
+                sel_col = (sel_col + 1) % kb_cols[sel_row];
+            }
 
             // A = type
             if (vpad.trigger & VPAD_BUTTON_A) {
@@ -173,10 +181,14 @@ int main(int argc, char **argv)
             }
 
             // B = backspace
-            if (vpad.trigger & VPAD_BUTTON_B) { if (in_len > 0) input[--in_len] = '\0'; }
+            if (vpad.trigger & VPAD_BUTTON_B) {
+                if (in_len > 0) input[--in_len] = '\0';
+            }
 
             // X = shift toggle
-            if (vpad.trigger & VPAD_BUTTON_X) { shift = !shift; if (sel_col >= kb_cols[sel_row]) sel_col = kb_cols[sel_row]-1; }
+            if (vpad.trigger & VPAD_BUTTON_X) {
+                shift = !shift; if (sel_col >= kb_cols[sel_row]) sel_col = kb_cols[sel_row]-1;
+            }
 
             // Y / PLUS = send
             if ((vpad.trigger & VPAD_BUTTON_Y) || (vpad.trigger & VPAD_BUTTON_PLUS)) {
