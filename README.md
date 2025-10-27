@@ -8,4 +8,3 @@
 The Wii U Client is still in development but if you would like to test it before release you could download [aurorachat-wiiu.rpx](https://github.com/ItsFuntum/aurorachat-wiiu/raw/refs/heads/main/aurorachat-wiiu.rpx) and load it natively on a Wii U or in Cemu
 
 Alternatively you can clone the repository and make your own build
-
