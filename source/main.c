@@ -10,11 +10,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_mixer.h>
-
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 8961
 
