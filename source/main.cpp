@@ -8,6 +8,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <string.h>
+#include <map>
+#include <string>
 #include <romfs-wiiu.h>
 
 #include <SDL2/SDL.h>
@@ -55,27 +57,52 @@ void send_chat_line(int *sock, int *in_len, char *input) {
     }
 }
 
-void DrawText(SDL_Renderer *renderer, TTF_Font *font, const char *text, int x, int y, SDL_Color color)
+// Store font
+std::map<int, TTF_Font*> g_FontCache;
+const char* g_FontPath = "romfs:/res/FOT-RodinNTLG Pro DB.otf";
+
+TTF_Font* GetFont(int size)
 {
-    // Create an SDL surface from the text
-    SDL_Surface *surface = TTF_RenderUTF8_Blended(font, text, color);
+    // If the font for this size already exists, return it
+    if (g_FontCache.find(size) != g_FontCache.end())
+        return g_FontCache[size];
+
+    // Otherwise, load it
+    TTF_Font* font = TTF_OpenFont(g_FontPath, size);
+    if (!font) {
+        return nullptr;
+    }
+
+    g_FontCache[size] = font;
+    return font;
+}
+
+void DrawText(SDL_Renderer *renderer, const char *text, int x, int y, int size, SDL_Color color)
+{
+    TTF_Font* font = GetFont(size);
+    if (!font) return;
+
+    SDL_Surface* surface = TTF_RenderUTF8_Blended(font, text, color);
     if (!surface) return;
 
-    // Convert the surface to a texture
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
     if (!texture) return;
 
-    // Get texture dimensions
     int textW = 0, textH = 0;
     SDL_QueryTexture(texture, NULL, NULL, &textW, &textH);
 
-    // Set destination rectangle and render
     SDL_Rect dstRect = { x, y, textW, textH };
     SDL_RenderCopy(renderer, texture, NULL, &dstRect);
 
-    // Free texture
     SDL_DestroyTexture(texture);
+}
+
+void FreeFonts()
+{
+    for (auto& f : g_FontCache)
+        TTF_CloseFont(f.second);
+    g_FontCache.clear();
 }
 
 // -----------------------
@@ -129,13 +156,11 @@ int main(int argc, char **argv)
     SDL_Window *window = SDL_CreateWindow(NULL, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    // Load font
-    TTF_Font *font = TTF_OpenFont("romfs:/res/FOT-RodinNTLG Pro DB.otf", 24);
-    if (!font) {
-        return -1;
-    }
+    SDL_Color black = {0, 0, 0, 255};
 
-    SDL_Color white = {255, 255, 255, 255};
+    std::string scene = "main";
+
+    std::string username = "";
 
     // Main loop
     while (WHBProcIsRunning()) {
@@ -146,7 +171,7 @@ int main(int argc, char **argv)
         if (error == VPAD_READ_SUCCESS) {
             // D-pad navigation
             if (vpad.trigger & VPAD_BUTTON_UP) {
-                
+
             }
             if (vpad.trigger & VPAD_BUTTON_DOWN) {
                 
@@ -158,24 +183,21 @@ int main(int argc, char **argv)
                 
             }
 
-            // A = type
+            // A = Change Username
             if (vpad.trigger & VPAD_BUTTON_A) {
-                send_chat_line(&sock, &in_len, input);
-            }
-
-            // B = backspace
-            if (vpad.trigger & VPAD_BUTTON_B) {
-                if (in_len > 0) input[--in_len] = '\0';
-            }
-
-            // X = shift toggle
-            if (vpad.trigger & VPAD_BUTTON_X) {
                 
             }
 
-            // Y / PLUS = send
-            if ((vpad.trigger & VPAD_BUTTON_PLUS)) {
+            // B = Send Message
+            if (vpad.trigger & VPAD_BUTTON_B) {
                 send_chat_line(&sock, &in_len, input);
+            }
+
+            // L and X = Rules Scene Toggle
+            if ((vpad.trigger & VPAD_BUTTON_L) && scene == "main") {
+                scene = "rules";
+            } else if ((vpad.trigger & VPAD_BUTTON_X) && scene == "rules") {
+                scene = "main";
             }
         }
 
@@ -193,11 +215,22 @@ int main(int argc, char **argv)
         }
 
         // Render
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // black background
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderClear(renderer);
 
-        SDL_Color white = {255, 255, 255, 255};
-        DrawText(renderer, font, "Hello, world!", 100, 100, white);
+        if (scene == "main") {
+            DrawText(renderer, "aurorachat", 1300, 10, 96, black);
+            DrawText(renderer, "v0.0.2", 1700, 120, 64, black);
+
+            DrawText(renderer, "A: Change Username", 0, 20, 64, black);
+            DrawText(renderer, "B: Send Message", 0, 110, 64, black);
+            DrawText(renderer, "L: Rules", 0, 200, 64, black);
+
+            DrawText(renderer, ("Username: " + username).c_str(), 0, 900, 96, black);
+        }
+        else if (scene == "rules") {
+            DrawText(renderer, "(Press X to Go Back)", 0, 20, 64, black);
+        }
 
         SDL_RenderPresent(renderer);
     }
@@ -208,7 +241,7 @@ int main(int argc, char **argv)
     }
 
     romfsExit();
-    TTF_CloseFont(font);
+    FreeFonts();
     TTF_Quit();
     SDL_Quit();
     WHBProcShutdown();

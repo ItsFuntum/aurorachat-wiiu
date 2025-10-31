@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 project(aurorachat-wiiu CXX C)
 
 include_directories(
-   ${CMAKE_SOURCE_DIR}/SDL/include
-   ${CMAKE_SOURCE_DIR}/SDL/src
-   ${CMAKE_SOURCE_DIR}/SDL/src/include
    ${DEVKITPRO}/portlibs/wiiu/include)
 link_directories(
    ${CMAKE_SOURCE_DIR}/SDL/src)
@@ -12,7 +9,7 @@ link_directories(
 add_executable(aurorachat-wiiu
    source/main.cpp)
 
-include("${DEVKITPRO}/portlibs/wiiu/share/romfs-wiiu.cmake" REQUIRED)
+include("$ENV{DEVKITPRO}/portlibs/wiiu/share/romfs-wiiu.cmake" REQUIRED)
 
 romfs_add(aurorachat-wiiu "${CMAKE_SOURCE_DIR}/romfs")
 
