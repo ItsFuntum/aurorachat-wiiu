@@ -201,6 +201,13 @@ int main(int argc, char **argv)
         }
         else if (scene == "rules") {
             DrawText(renderer, "(Press X to Go Back)", 0, 20, 64, black);
+
+            DrawText(renderer, "Rule 1: No Spamming", 0, 200, 64, black);
+            DrawText(renderer, "Rule 2: No Swearing", 0, 380, 64, black);
+            DrawText(renderer, "Rule 3: No Impersonating", 0, 560, 64, black);
+            DrawText(renderer, "Rule 4: No Politics", 0, 740, 64, black);
+
+            DrawText(renderer, "All of these could result in a ban", 0, 920, 64, black);
         }
 
         SDL_RenderPresent(renderer);
