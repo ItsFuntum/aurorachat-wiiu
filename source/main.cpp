@@ -12,8 +12,9 @@
 #include <string>
 #include <romfs-wiiu.h>
 
-#include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL.h>
+#include <src/video/wiiu/SDL_wiiuswkbd.h>
 
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 8961
@@ -112,8 +113,9 @@ int main(int argc, char **argv)
 {
     WHBProcInit();
     SDL_Init(SDL_INIT_VIDEO);
-    TTF_Init();
     romfsInit();
+    TTF_Init();
+    WIIU_SWKBD_Initialize();
 
     // Socket setup
     int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -125,33 +127,15 @@ int main(int argc, char **argv)
         serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
 
         if (connect(sock, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0) {
-            WHBLogPrintf("Failed to connect to server\n");
-            WHBLogConsoleDraw();
             close(sock);
             sock = -1;
-        } else {
-            WHBLogPrintf("Connected to chat server\n");
-            WHBLogConsoleDraw();
         }
-    } else {
-        WHBLogPrintf("Failed to create socket\n");
-        WHBLogConsoleDraw();
     }
 
     // Variables
     char input[512] = "";
     int in_len = 0;
     char recvBuffer[256];
-
-    // Initialize SDL
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        return -1;
-    }
-
-    // Initialize TTF
-    if (TTF_Init() == -1) {
-        return -1;
-    }
     
     SDL_Window *window = SDL_CreateWindow(NULL, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -190,7 +174,7 @@ int main(int argc, char **argv)
 
             // B = Send Message
             if (vpad.trigger & VPAD_BUTTON_B) {
-                send_chat_line(&sock, &in_len, input);
+                WIIU_SWKBD_ShowScreenKeyboard(nullptr, window);
             }
 
             // L and X = Rules Scene Toggle
@@ -198,19 +182,6 @@ int main(int argc, char **argv)
                 scene = "rules";
             } else if ((vpad.trigger & VPAD_BUTTON_X) && scene == "rules") {
                 scene = "main";
-            }
-        }
-
-        // Receive messages
-        if (sock >= 0) {
-            int len = recv(sock, recvBuffer, sizeof(recvBuffer)-1, MSG_DONTWAIT);
-            if (len > 0) {
-                recvBuffer[len] = '\0';
-                WHBLogPrintf(recvBuffer);
-            } else if (len == 0) {
-                WHBLogPrintf("Connection closed by server");
-                close(sock);
-                sock = -1;
             }
         }
 
@@ -240,6 +211,7 @@ int main(int argc, char **argv)
         close(sock);
     }
 
+    WIIU_SWKBD_Finalize();
     romfsExit();
     FreeFonts();
     TTF_Quit();
