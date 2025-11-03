@@ -13,8 +13,7 @@
 #include <romfs-wiiu.h>
 
 #include <SDL2/SDL_ttf.h>
-#include <SDL.h>
-#include <src/video/wiiu/SDL_wiiuswkbd.h>
+#include <SDL2/SDL.h>
 
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 8961
@@ -115,7 +114,6 @@ int main(int argc, char **argv)
     SDL_Init(SDL_INIT_VIDEO);
     romfsInit();
     TTF_Init();
-    WIIU_SWKBD_Initialize();
 
     // Socket setup
     int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -174,7 +172,7 @@ int main(int argc, char **argv)
 
             // B = Send Message
             if (vpad.trigger & VPAD_BUTTON_B) {
-                WIIU_SWKBD_ShowScreenKeyboard(nullptr, window);
+                
             }
 
             // L and X = Rules Scene Toggle
@@ -218,7 +216,6 @@ int main(int argc, char **argv)
         close(sock);
     }
 
-    WIIU_SWKBD_Finalize();
     romfsExit();
     FreeFonts();
     TTF_Quit();
