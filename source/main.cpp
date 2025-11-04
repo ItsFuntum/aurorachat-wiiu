@@ -14,6 +14,7 @@
 
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>
 
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 8961
@@ -144,11 +145,18 @@ int main(int argc, char **argv)
 
     std::string username = "";
 
+    std::string textBuffer = "";
+
+    SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
+
+    std::string textSendType = "";
+
     // Main loop
     while (WHBProcIsRunning()) {
         VPADStatus vpad;
         VPADReadError error;
         VPADRead(VPAD_CHAN_0, &vpad, 1, &error);
+        SDL_WiiUSetSWKBDVPAD(&vpad);
 
         if (error == VPAD_READ_SUCCESS) {
             // D-pad navigation
@@ -167,12 +175,15 @@ int main(int argc, char **argv)
 
             // A = Change Username
             if (vpad.trigger & VPAD_BUTTON_A) {
-                
+                textSendType = "username";
+                SDL_WiiUSetSWKBDInitialText(username.c_str());
+                SDL_StartTextInput();
             }
 
             // B = Send Message
             if (vpad.trigger & VPAD_BUTTON_B) {
-                
+                textSendType = "message";
+                SDL_StartTextInput();
             }
 
             // L and X = Rules Scene Toggle
@@ -180,6 +191,28 @@ int main(int argc, char **argv)
                 scene = "rules";
             } else if ((vpad.trigger & VPAD_BUTTON_X) && scene == "rules") {
                 scene = "main";
+            }
+        }
+
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_TEXTINPUT)
+                textBuffer += event.text.text;
+            else if (event.type == SDL_SYSWMEVENT) {
+                if (event.syswm.msg->msg.wiiu.event == SDL_WIIU_SYSWM_SWKBD_OK_FINISH_EVENT) {
+                    if (!textBuffer.empty()) {
+                        if (textSendType == "message") {
+                            strncpy(input, textBuffer.c_str(), sizeof(input) - 1);
+                            in_len = strlen(input);
+                            send_chat_line(&sock, &in_len, input);
+                        } else if (textSendType == "username") {
+                            username = textBuffer;
+                        }
+                        textBuffer.clear();
+                        textSendType.clear();
+                    }
+                    SDL_StopTextInput();
+                }
             }
         }
 
