@@ -15,6 +15,7 @@ romfs_add(aurorachat-wiiu "${CMAKE_SOURCE_DIR}/romfs")
 target_link_libraries(aurorachat-wiiu
    SDL2
    SDL2_ttf
+   SDL2_image
    freetype
    harfbuzz)
 

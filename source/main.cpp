@@ -15,8 +15,9 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
 #include <SDL2/SDL_syswm.h>
 
 #define SERVER_IP "127.0.0.1"
@@ -89,6 +90,26 @@ void DrawChatBuffer(SDL_Renderer *renderer, int startX, int startY, int lineHeig
         DrawText(renderer, line.c_str(), startX, y, 48, color);
         y += lineHeight;
     }
+}
+
+// -----------------------
+// Image system
+// -----------------------
+
+void DrawImage(SDL_Renderer *renderer, int x, int y, const char *file)
+{
+    SDL_Texture* texture = IMG_LoadTexture(renderer, file);
+    if (!texture) {
+        AddChatLine(std::string("Failed to load image: ") + IMG_GetError());
+        return;
+    }
+
+    int w, h;
+    SDL_QueryTexture(texture, NULL, NULL, &w, &h);
+
+    SDL_Rect dstRect = { x, y, w, h };
+    SDL_RenderCopy(renderer, texture, NULL, &dstRect);
+    SDL_DestroyTexture(texture);
 }
 
 // -----------------------
@@ -196,6 +217,7 @@ int main(int argc, char **argv)
     SDL_Init(SDL_INIT_VIDEO);
     romfsInit();
     TTF_Init();
+    IMG_Init(IMG_INIT_PNG);
 
     int sock = ConnectToServer();
 
@@ -220,13 +242,13 @@ int main(int argc, char **argv)
         SDL_WiiUSetSWKBDVPAD(&vpad);
 
         if (error == VPAD_READ_SUCCESS) {
-            if (vpad.trigger & VPAD_BUTTON_A) {
+            if ((vpad.trigger & VPAD_BUTTON_A) && scene == "main") {
                 textSendType = "username";
                 SDL_WiiUSetSWKBDInitialText(username.c_str());
                 SDL_StartTextInput();
             }
 
-            if (vpad.trigger & VPAD_BUTTON_B) {
+            if ((vpad.trigger & VPAD_BUTTON_B) && scene == "main") {
                 textSendType = "message";
                 SDL_StartTextInput();
             }
@@ -274,6 +296,7 @@ int main(int argc, char **argv)
             DrawText(renderer, "L: Rules", 0, 200, 64, black);
             DrawText(renderer, ("Username: " + username).c_str(), 0, 900, 96, black);
 
+            DrawImage(renderer, 1350, 10, "romfs:/res/logo.png");
             DrawChatBuffer(renderer, 0, 300, 60, black);
         }
         else if (scene == "rules") {
@@ -293,6 +316,7 @@ int main(int argc, char **argv)
         close(sock);
     }
 
+    IMG_Quit();
     romfsExit();
     FreeFonts();
     TTF_Quit();
