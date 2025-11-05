@@ -20,7 +20,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_syswm.h>
 
-#define SERVER_IP "127.0.0.1"
+#define SERVER_IP "104.236.25.60"
 #define SERVER_PORT 8961
 
 // -----------------------
@@ -200,7 +200,7 @@ void TryReceive(int *sock)
         } else {
             if (errno == EWOULDBLOCK || errno == EAGAIN)
                 break;
-            AddChatLine("Socket error, closing.");
+            AddChatLine(std::string("Failed to connect to ") + SERVER_IP);
             close(*sock);
             *sock = -1;
             break;
