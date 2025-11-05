@@ -200,7 +200,7 @@ void TryReceive(int *sock)
         } else {
             if (errno == EWOULDBLOCK || errno == EAGAIN)
                 break;
-            AddChatLine(std::string("Failed to connect to ") + SERVER_IP);
+            AddChatLine("Failed to connect to aurorachat server.");
             close(*sock);
             *sock = -1;
             break;
@@ -235,9 +235,10 @@ int main(int argc, char **argv)
 
     AddChatLine("-chat-");
 
+    VPADStatus vpad;
+    VPADReadError error;
+
     while (WHBProcIsRunning()) {
-        VPADStatus vpad;
-        VPADReadError error;
         VPADRead(VPAD_CHAN_0, &vpad, 1, &error);
         SDL_WiiUSetSWKBDVPAD(&vpad);
 
