@@ -207,26 +207,22 @@ void send_chat_line(int *sock, const char *username, const char *input)
 
 void handle_button_down(const SDL_ControllerButtonEvent& e)
 {
-    switch (e.button)
-    {
-        case SDL_CONTROLLER_BUTTON_A:
+    if (textSendType.empty()) {
+        if (e.button == SDL_CONTROLLER_BUTTON_A && scene == "main") {
             textSendType = "username";
             SDL_WiiUSetSWKBDInitialText(username.c_str());
             SDL_StartTextInput();
-            break;
-
-        case SDL_CONTROLLER_BUTTON_B:
+        }
+        else if (e.button == SDL_CONTROLLER_BUTTON_B && scene == "main") {
             textSendType = "message";
             SDL_StartTextInput();
-            break;
-
-        case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: // L
-            if (scene == "main") scene = "rules";
-            break;
-
-        case SDL_CONTROLLER_BUTTON_X: // X
-            if (scene == "rules") scene = "main";
-            break;
+        }
+        else if (e.button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER && scene == "main") {
+            scene = "rules";
+        }
+        else if (e.button == SDL_CONTROLLER_BUTTON_X && scene == "rules") {
+            scene = "main";
+        }
     }
 }
 
@@ -269,22 +265,23 @@ int main(int argc, char **argv)
     AddChatLine("-chat-");
 
     SDL_Event event;
+    SDL_GameController* gController = nullptr;
+
+    if (SDL_NumJoysticks() > 0) {
+        if (SDL_IsGameController(0)) {
+            gController = SDL_GameControllerOpen(0);
+        }
+    }
 
     while (WHBProcIsRunning()) {
-        SDL_GameController* gController = nullptr;
-
-        if (SDL_NumJoysticks() > 0) {
-            if (SDL_IsGameController(0)) {
-                gController = SDL_GameControllerOpen(0);
-            }
-        }
-
         while (SDL_PollEvent(&event)) {
             handle_event(event);
+
             if (event.type == SDL_TEXTINPUT)
                 textBuffer += event.text.text;
-            else if (event.type == SDL_SYSWMEVENT) {
-                if (event.syswm.msg->msg.wiiu.event == SDL_WIIU_SYSWM_SWKBD_OK_FINISH_EVENT) {
+
+            if (event.type == SDL_SYSWMEVENT) {
+                if (event.syswm.msg->msg.wiiu.event == SDL_WIIU_SYSWM_SWKBD_OK_FINISH_EVENT || event.syswm.msg->msg.wiiu.event == SDL_WIIU_SYSWM_SWKBD_CANCEL_EVENT) {
                     if (textSendType == "message" && !textBuffer.empty()) {
                         strncpy(input, textBuffer.c_str(), sizeof(input) - 1);
                         input[sizeof(input) - 1] = '\0';
@@ -334,10 +331,13 @@ int main(int argc, char **argv)
         close(sock);
     }
 
+    if (gController)
+        SDL_GameControllerClose(gController);
+
     IMG_Quit();
-    romfsExit();
     FreeFonts();
     TTF_Quit();
+    romfsExit();
     SDL_Quit();
     WHBProcShutdown();
     return 0;
