@@ -150,30 +150,6 @@ int ConnectToServer()
     return sock;
 }
 
-void send_chat_line(int *sock, const char *username, const char *input)
-{
-    if (!input || input[0] == '\0') return;
-
-    char sendbuf[600];
-    if (username && username[0] != '\0')
-        snprintf(sendbuf, sizeof(sendbuf), "<%s>: %s\n", username, input);
-    else
-        snprintf(sendbuf, sizeof(sendbuf), "%s\n", input);
-
-    if (*sock >= 0) {
-        ssize_t sent = send(*sock, sendbuf, strlen(sendbuf), 0);
-        if (sent < 0) {
-            AddChatLine("Send failed, reconnecting...");
-            close(*sock);
-            *sock = -1;
-        }
-    }
-
-    if (*sock < 0) {
-        *sock = ConnectToServer();
-    }
-}
-
 void TryReceive(int *sock)
 {
     if (*sock < 0) return;
@@ -205,6 +181,30 @@ void TryReceive(int *sock)
             *sock = -1;
             break;
         }
+    }
+}
+
+void send_chat_line(int *sock, const char *username, const char *input)
+{
+    if (!input || input[0] == '\0') return;
+
+    char sendbuf[600];
+    if (username && username[0] != '\0')
+        snprintf(sendbuf, sizeof(sendbuf), "<%s>: %s\n", username, input);
+    else
+        snprintf(sendbuf, sizeof(sendbuf), "%s\n", input);
+
+    if (*sock >= 0) {
+        ssize_t sent = send(*sock, sendbuf, strlen(sendbuf), 0);
+        if (sent < 0) {
+            AddChatLine("Send failed, reconnecting...");
+            close(*sock);
+            *sock = -1;
+        }
+    }
+
+    if (*sock < 0) {
+        *sock = ConnectToServer();
     }
 }
 
@@ -266,17 +266,15 @@ int main(int argc, char **argv)
                 textBuffer += event.text.text;
             else if (event.type == SDL_SYSWMEVENT) {
                 if (event.syswm.msg->msg.wiiu.event == SDL_WIIU_SYSWM_SWKBD_OK_FINISH_EVENT) {
-                    if (!textBuffer.empty()) {
-                        if (textSendType == "message") {
-                            strncpy(input, textBuffer.c_str(), sizeof(input) - 1);
-                            input[sizeof(input) - 1] = '\0';
-                            send_chat_line(&sock, username.c_str(), input);
-                        } else if (textSendType == "username") {
-                            username = textBuffer;
-                        }
-                        textBuffer.clear();
-                        textSendType.clear();
+                    if (textSendType == "message" && !textBuffer.empty()) {
+                        strncpy(input, textBuffer.c_str(), sizeof(input) - 1);
+                        input[sizeof(input) - 1] = '\0';
+                        send_chat_line(&sock, username.c_str(), input);
+                    } else if (textSendType == "username") {
+                        username = textBuffer;
                     }
+                    textBuffer.clear();
+                    textSendType.clear();
                     SDL_StopTextInput();
                 }
             }
