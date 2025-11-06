@@ -242,13 +242,13 @@ int main(int argc, char **argv)
         VPADRead(VPAD_CHAN_0, &vpad, 1, &error);
         SDL_WiiUSetSWKBDVPAD(&vpad);
 
-        if (error == VPAD_READ_SUCCESS) {
+        if (error == VPAD_READ_SUCCESS && textSendType.empty()) {
             if ((vpad.trigger & VPAD_BUTTON_A) && scene == "main") {
                 textSendType = "username";
                 SDL_WiiUSetSWKBDInitialText(username.c_str());
                 SDL_StartTextInput();
             }
-
+            
             if ((vpad.trigger & VPAD_BUTTON_B) && scene == "main") {
                 textSendType = "message";
                 SDL_StartTextInput();
@@ -256,7 +256,8 @@ int main(int argc, char **argv)
 
             if ((vpad.trigger & VPAD_BUTTON_L) && scene == "main")
                 scene = "rules";
-            else if ((vpad.trigger & VPAD_BUTTON_X) && scene == "rules")
+            
+            if ((vpad.trigger & VPAD_BUTTON_X) && scene == "rules")
                 scene = "main";
         }
 
