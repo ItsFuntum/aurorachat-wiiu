@@ -1,19 +1,11 @@
-#include <coreinit/thread.h>
-#include <whb/log.h>
-#include <whb/log_console.h>
 #include <whb/proc.h>
-#include <vpad/input.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include <string.h>
 #include <map>
 #include <string>
 #include <romfs-wiiu.h>
 #include <deque>
 #include <fcntl.h>
-#include <errno.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
@@ -22,6 +14,11 @@
 
 #define SERVER_IP "104.236.25.60"
 #define SERVER_PORT 8961
+
+std::string scene = "main";
+std::string username = "";
+std::string textBuffer = "";
+std::string textSendType = "";
 
 // -----------------------
 // Chat buffer
@@ -208,13 +205,53 @@ void send_chat_line(int *sock, const char *username, const char *input)
     }
 }
 
+void handle_button_down(const SDL_ControllerButtonEvent& e)
+{
+    switch (e.button)
+    {
+        case SDL_CONTROLLER_BUTTON_A:
+            textSendType = "username";
+            SDL_WiiUSetSWKBDInitialText(username.c_str());
+            SDL_StartTextInput();
+            break;
+
+        case SDL_CONTROLLER_BUTTON_B:
+            textSendType = "message";
+            SDL_StartTextInput();
+            break;
+
+        case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: // L
+            if (scene == "main") scene = "rules";
+            break;
+
+        case SDL_CONTROLLER_BUTTON_X: // X
+            if (scene == "rules") scene = "main";
+            break;
+    }
+}
+
+void handle_event(const SDL_Event& event)
+{
+    switch (event.type) {
+        case SDL_CONTROLLERDEVICEADDED:
+            SDL_GameControllerOpen(event.cdevice.which);
+            break;
+        case SDL_CONTROLLERDEVICEREMOVED:
+            if (auto ctrlr = SDL_GameControllerFromInstanceID(event.cdevice.which))
+                SDL_GameControllerClose(ctrlr);
+            break;
+        case SDL_CONTROLLERBUTTONDOWN:
+            handle_button_down(event.cbutton);
+    }
+}
+
 // -----------------------
 // Main
 // -----------------------
 int main(int argc, char **argv)
 {
     WHBProcInit();
-    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
     romfsInit();
     TTF_Init();
     IMG_Init(IMG_INIT_PNG);
@@ -226,43 +263,24 @@ int main(int argc, char **argv)
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     SDL_Color black = {0, 0, 0, 255};
-    std::string scene = "main";
-    std::string username = "";
-    std::string textBuffer = "";
-    std::string textSendType = "";
 
     SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
 
     AddChatLine("-chat-");
 
-    VPADStatus vpad;
-    VPADReadError error;
+    SDL_Event event;
 
     while (WHBProcIsRunning()) {
-        VPADRead(VPAD_CHAN_0, &vpad, 1, &error);
-        SDL_WiiUSetSWKBDVPAD(&vpad);
+        SDL_GameController* gController = nullptr;
 
-        if (error == VPAD_READ_SUCCESS && textSendType.empty()) {
-            if ((vpad.trigger & VPAD_BUTTON_A) && scene == "main") {
-                textSendType = "username";
-                SDL_WiiUSetSWKBDInitialText(username.c_str());
-                SDL_StartTextInput();
+        if (SDL_NumJoysticks() > 0) {
+            if (SDL_IsGameController(0)) {
+                gController = SDL_GameControllerOpen(0);
             }
-            
-            if ((vpad.trigger & VPAD_BUTTON_B) && scene == "main") {
-                textSendType = "message";
-                SDL_StartTextInput();
-            }
-
-            if ((vpad.trigger & VPAD_BUTTON_L) && scene == "main")
-                scene = "rules";
-            
-            if ((vpad.trigger & VPAD_BUTTON_X) && scene == "rules")
-                scene = "main";
         }
 
-        SDL_Event event;
         while (SDL_PollEvent(&event)) {
+            handle_event(event);
             if (event.type == SDL_TEXTINPUT)
                 textBuffer += event.text.text;
             else if (event.type == SDL_SYSWMEVENT) {
