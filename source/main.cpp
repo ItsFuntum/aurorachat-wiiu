@@ -273,6 +273,10 @@ int main(int argc, char **argv)
         }
     }
 
+    int Keyboard_Event;
+    SDL_WiiUSysWMEventType Keyboard_Ok = SDL_WIIU_SYSWM_SWKBD_OK_FINISH_EVENT;
+    SDL_WiiUSysWMEventType Keyboard_Cancel = SDL_WIIU_SYSWM_SWKBD_CANCEL_EVENT;
+
     while (WHBProcIsRunning()) {
         while (SDL_PollEvent(&event)) {
             handle_event(event);
@@ -281,13 +285,16 @@ int main(int argc, char **argv)
                 textBuffer += event.text.text;
 
             if (event.type == SDL_SYSWMEVENT) {
-                if (event.syswm.msg->msg.wiiu.event == SDL_WIIU_SYSWM_SWKBD_OK_FINISH_EVENT || event.syswm.msg->msg.wiiu.event == SDL_WIIU_SYSWM_SWKBD_CANCEL_EVENT) {
-                    if (textSendType == "message" && !textBuffer.empty()) {
-                        strncpy(input, textBuffer.c_str(), sizeof(input) - 1);
-                        input[sizeof(input) - 1] = '\0';
-                        send_chat_line(&sock, username.c_str(), input);
-                    } else if (textSendType == "username") {
-                        username = textBuffer;
+                Keyboard_Event = event.syswm.msg->msg.wiiu.event;
+                if (Keyboard_Event == Keyboard_Ok || Keyboard_Event == Keyboard_Cancel) {
+                    if (Keyboard_Event == Keyboard_Ok) {
+                        if (textSendType == "message" && !textBuffer.empty()) {
+                            strncpy(input, textBuffer.c_str(), sizeof(input) - 1);
+                            input[sizeof(input) - 1] = '\0';
+                            send_chat_line(&sock, username.c_str(), input);
+                        } else if (textSendType == "username") {
+                            username = textBuffer;
+                        }
                     }
                     textBuffer.clear();
                     textSendType.clear();
