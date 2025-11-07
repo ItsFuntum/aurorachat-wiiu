@@ -5,6 +5,7 @@ A chatting application originally for the Nintendo 3DS and 2DS line of systems, 
 
 - [X] SDL2 Rendering
 - [X] Built-in Keyboard support
+- [ ] Scrollable chat
 - [ ] Dual-screen rendering (I haven't figured this out yet)
 - [ ] Sounds. Background music would also be cool
 
