@@ -23,3 +23,12 @@ Before building make sure you have the following dependencies installed:
 - SDL2_ttf
 - SDL2_image
 - libromfs-wiiu
+
+Once the environment is setup:
+```
+git clone https://github.com/ItsFuntum/aurorachat-wiiu.git
+cd aurorachat-wiiu
+mkdir build && cd build
+/opt/devkitpro/portlibs/wiiu/bin/powerpc-eabi-cmake ../
+make
+```
