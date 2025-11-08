@@ -20,3 +20,14 @@ target_link_libraries(aurorachat-wiiu
    harfbuzz)
 
 wut_create_rpx(aurorachat-wiiu)
+
+add_custom_command(TARGET aurorachat-wiiu POST_BUILD
+    COMMAND wuhbtool
+        ${CMAKE_CURRENT_BINARY_DIR}/aurorachat-wiiu.rpx
+        ${CMAKE_CURRENT_BINARY_DIR}/aurorachat-wiiu.wuhb
+        --name="aurorachat-wiiu"
+        --short-name="aurorachat"
+        --author="Funtum"
+        --icon=${CMAKE_SOURCE_DIR}/aurorachat-wiiu-icon.png
+    COMMENT "Packaging aurorachat-wiiu.wuhb..."
+)
