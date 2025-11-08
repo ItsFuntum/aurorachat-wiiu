@@ -338,7 +338,7 @@ int main(int argc, char **argv)
 
         if (scene == "main") {
             DrawText(renderer, "aurorachat", 1300, 10, 96, black);
-            DrawText(renderer, "v0.0.2", 1700, 120, 64, black);
+            DrawText(renderer, "v0.0.3", 1700, 120, 64, black);
             DrawText(renderer, "A: Change Username", 0, 20, 64, black);
             DrawText(renderer, "B: Send Message", 0, 110, 64, black);
             DrawText(renderer, "L: Rules", 0, 200, 64, black);
