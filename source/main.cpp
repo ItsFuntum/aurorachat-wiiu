@@ -135,15 +135,41 @@ int ConnectToServer()
     serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
 
     int res = connect(sock, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
-    if (res != 0)
+    if (res < 0 && errno != EINPROGRESS)
     {
-        if (errno != EINPROGRESS)
-        {
-            AddChatLine("Failed to connect to server.");
-            close(sock);
-            sock = -1;
-        }
+        AddChatLine("Immediate connect() failure.");
+        close(sock);
+        return -1;
     }
+
+    // Wait up to 5 seconds for connection
+    fd_set wfds;
+    FD_ZERO(&wfds);
+    FD_SET(sock, &wfds);
+    struct timeval tv = {5, 0};
+
+    res = select(sock + 1, NULL, &wfds, NULL, &tv);
+    if (res <= 0)
+    {
+        AddChatLine("Connection timed out.");
+        close(sock);
+        return -1;
+    }
+
+    // Check for socket errors
+    int so_error = 0;
+    socklen_t len = sizeof(so_error);
+    getsockopt(sock, SOL_SOCKET, SO_ERROR, &so_error, &len);
+    if (so_error != 0)
+    {
+        AddChatLine("Connection failed.");
+        close(sock);
+        return -1;
+    }
+
+    // Connected successfully
+    SetNonBlocking(sock);
+    AddChatLine("Connected to server.");
     return sock;
 }
 
