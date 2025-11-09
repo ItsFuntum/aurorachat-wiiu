@@ -4,12 +4,13 @@ A chatting application originally for the Nintendo 3DS and 2DS line of systems, 
 ## Features
 
 - [X] SDL2 Rendering
-- [X] Built-in Keyboard support
+- [X] Wii U Keyboard support
+- [ ] Themes
+- [ ] Auroraccounts integration (can't be done yet)
 - [ ] Scrollable chat
-- [ ] Dual-screen rendering (I haven't figured this out yet)
-- [ ] Sounds. Background music would also be cool
-
-*Auroraccounts isn't mentioned in this list but will definitely be added once it's implemented in the 3DS/2DS client.*
+- [ ] Sounds
+- [ ] Background music (we need Nintendo vibes)
+- [ ] Dual-screen rendering (I haven't figured this out yet, it may not even be possible)
 
 ## Goal
 
