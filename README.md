@@ -1,15 +1,16 @@
 # [aurorachat](https://github.com/mii-man/aurorachat) for Wii U
 A chatting application originally for the Nintendo 3DS and 2DS line of systems, now on Wii U.
 
-## Features
+## Planned and finished features
 
 - [X] SDL2 Rendering
 - [X] Wii U Keyboard support
-- [ ] Themes
-- [ ] Auroraccounts integration (can't be done yet)
-- [ ] Scrollable chat
+- [X] Themes
+- [X] Scrollable chat
+- [ ] Fullscreen mode (hides everything except chat)
 - [ ] Sounds
 - [ ] Background music (we need Nintendo vibes)
+- [ ] Auroraccounts integration (can't be done yet)
 - [ ] Dual-screen rendering (I haven't figured this out yet, it may not even be possible)
 
 ## Goal
