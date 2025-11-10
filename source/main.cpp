@@ -279,32 +279,24 @@ void handle_button_down(const SDL_ControllerButtonEvent& e)
                 scene = "rules";
             }
             else if (e.button == SDL_CONTROLLER_BUTTON_DPAD_UP) {
-                currentTheme++;
-                if (currentTheme > Themes.size()) currentTheme = 1;
-                current = Themes[currentTheme];
+                g_ChatScrollOffset = std::min(g_ChatScrollOffset + 1, (int)g_ChatBuffer.size());
             }
             else if (e.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN) {
+                g_ChatScrollOffset = std::max(g_ChatScrollOffset - 1, 0);
+            }
+            else if (e.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT) {
                 currentTheme--;
-                if (currentTheme < 1) currentTheme = Themes.size();;
+                if (currentTheme < 1) currentTheme = Themes.size();
+                current = Themes[currentTheme];
+            }
+            else if (e.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT) {
+                currentTheme++;
+                if (currentTheme > Themes.size()) currentTheme = 1;
                 current = Themes[currentTheme];
             }
         }
         else if (e.button == SDL_CONTROLLER_BUTTON_X) {
             scene = "main";
-        }
-    }
-}
-
-void handle_axis_motion(const SDL_ControllerAxisEvent& e)
-{
-    if (scene == "main" && textSendType.empty()) {
-        if (e.axis == SDL_CONTROLLER_AXIS_LEFTY) {
-            if (e.value < -10000) {
-                g_ChatScrollOffset = std::min(g_ChatScrollOffset + 1, (int)g_ChatBuffer.size());
-            }
-            else if (e.value > 10000) {
-                g_ChatScrollOffset = std::max(g_ChatScrollOffset - 1, 0);
-            }
         }
     }
 }
@@ -321,9 +313,6 @@ void handle_event(const SDL_Event& event)
             break;
         case SDL_CONTROLLERBUTTONDOWN:
             handle_button_down(event.cbutton);
-        case SDL_CONTROLLERAXISMOTION:
-            handle_axis_motion(event.caxis);
-            break;
     }
 }
 
@@ -403,7 +392,7 @@ int main(int argc, char **argv)
             DrawText(renderer, "A: Change Username", 0, 20, 64, current.textColor);
             DrawText(renderer, "B: Send Message", 0, 110, 64, current.textColor);
             DrawText(renderer, "L: Rules", 0, 200, 64, current.textColor);
-            DrawText(renderer, "D-PAD: Change Theme", 0, 290, 64, current.textColor);
+            DrawText(renderer, "D-PAD: Scroll Chat/Change Theme", 0, 290, 64, current.textColor);
             DrawText(renderer, ("Username: " + username).c_str(), 0, 900, 96, current.textColor);
 
             DrawImage(renderer, 1350, 10, "romfs:/res/logo.png");
