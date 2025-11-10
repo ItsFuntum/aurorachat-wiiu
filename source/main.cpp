@@ -20,6 +20,23 @@ std::string username = "";
 std::string textBuffer = "";
 std::string textSendType = "";
 
+struct Theme {
+    SDL_Color backgroundColor;
+    SDL_Color textColor;
+    std::string name;
+};
+
+std::map<int, Theme> Themes = {
+    {1, {{255, 255, 255, 255}, {0, 0, 0, 255}, "Aurora White"}},
+    {2, {{73, 73, 73, 255}, {0, 0, 0, 255}, "Deep Gray"}},
+    {3, {{0, 26, 242, 255}, {0, 0, 0, 255}, "Homeblue Chat"}},
+    {4, {{0, 0, 0, 255}, {17, 255, 0, 255}, "Hackertron Style"}},
+    {5, {{23, 27, 57, 255}, {255, 255, 255, 255}, "True Dark Mode"}}
+};
+
+Theme current = Themes[1];
+int currentTheme = 1;
+
 // -----------------------
 // Chat buffer
 // -----------------------
@@ -234,19 +251,31 @@ void send_chat_line(int *sock, const char *username, const char *input)
 void handle_button_down(const SDL_ControllerButtonEvent& e)
 {
     if (textSendType.empty()) {
-        if (e.button == SDL_CONTROLLER_BUTTON_A && scene == "main") {
-            textSendType = "username";
-            SDL_WiiUSetSWKBDInitialText(username.c_str());
-            SDL_StartTextInput();
+        if (scene == "main") {
+            if (e.button == SDL_CONTROLLER_BUTTON_A) {
+                textSendType = "username";
+                SDL_WiiUSetSWKBDInitialText(username.c_str());
+                SDL_StartTextInput();
+            }
+            else if (e.button == SDL_CONTROLLER_BUTTON_B) {
+                textSendType = "message";
+                SDL_StartTextInput();
+            }
+            else if (e.button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER) {
+                scene = "rules";
+            }
+            else if (e.button == SDL_CONTROLLER_BUTTON_DPAD_UP) {
+                currentTheme++;
+                if (currentTheme > Themes.size()) currentTheme = 1;
+                current = Themes[currentTheme];
+            }
+            else if (e.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN) {
+                currentTheme--;
+                if (currentTheme < 1) currentTheme = Themes.size();;
+                current = Themes[currentTheme];
+            }
         }
-        else if (e.button == SDL_CONTROLLER_BUTTON_B && scene == "main") {
-            textSendType = "message";
-            SDL_StartTextInput();
-        }
-        else if (e.button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER && scene == "main") {
-            scene = "rules";
-        }
-        else if (e.button == SDL_CONTROLLER_BUTTON_X && scene == "rules") {
+        else if (e.button == SDL_CONTROLLER_BUTTON_X) {
             scene = "main";
         }
     }
@@ -333,27 +362,29 @@ int main(int argc, char **argv)
         TryReceive(&sock);
 
         // Render
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_SetRenderDrawColor(renderer, current.backgroundColor.r, current.backgroundColor.g, current.backgroundColor.b, current.backgroundColor.a);
         SDL_RenderClear(renderer);
 
         if (scene == "main") {
-            DrawText(renderer, "aurorachat", 1300, 10, 96, black);
-            DrawText(renderer, "v0.0.3", 1700, 120, 64, black);
-            DrawText(renderer, "A: Change Username", 0, 20, 64, black);
-            DrawText(renderer, "B: Send Message", 0, 110, 64, black);
-            DrawText(renderer, "L: Rules", 0, 200, 64, black);
-            DrawText(renderer, ("Username: " + username).c_str(), 0, 900, 96, black);
+            DrawText(renderer, "aurorachat", 1300, 10, 96, current.textColor);
+            DrawText(renderer, "v0.0.3", 1700, 120, 64, current.textColor);
+            DrawText(renderer, (current.name).c_str(), 820, 0, 32, current.textColor);
+            DrawText(renderer, "A: Change Username", 0, 20, 64, current.textColor);
+            DrawText(renderer, "B: Send Message", 0, 110, 64, current.textColor);
+            DrawText(renderer, "L: Rules", 0, 200, 64, current.textColor);
+            DrawText(renderer, "D-PAD: Change Theme", 0, 290, 64, current.textColor);
+            DrawText(renderer, ("Username: " + username).c_str(), 0, 900, 96, current.textColor);
 
             DrawImage(renderer, 1350, 10, "romfs:/res/logo.png");
-            DrawChatBuffer(renderer, 0, 300, 60, black);
+            DrawChatBuffer(renderer, 0, 400, 60, current.textColor);
         }
         else if (scene == "rules") {
-            DrawText(renderer, "(Press X to Go Back)", 0, 20, 64, black);
-            DrawText(renderer, "Rule 1: No Spamming", 0, 200, 64, black);
-            DrawText(renderer, "Rule 2: No Swearing", 0, 380, 64, black);
-            DrawText(renderer, "Rule 3: No Impersonating", 0, 560, 64, black);
-            DrawText(renderer, "Rule 4: No Politics", 0, 740, 64, black);
-            DrawText(renderer, "Breaking rules may result in a ban", 0, 920, 64, black);
+            DrawText(renderer, "Rule 2: No Swearing", 0, 380, 64, current.textColor);
+            DrawText(renderer, "(Press X to Go Back)", 0, 20, 64, current.textColor);
+            DrawText(renderer, "Rule 1: No Spamming", 0, 200, 64, current.textColor);
+            DrawText(renderer, "Rule 3: No Impersonating", 0, 560, 64, current.textColor);
+            DrawText(renderer, "Rule 4: No Politics", 0, 740, 64, current.textColor);
+            DrawText(renderer, "Breaking rules may result in a ban", 0, 920, 64, current.textColor);
         }
 
         SDL_RenderPresent(renderer);
