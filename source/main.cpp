@@ -12,7 +12,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_syswm.h>
 
-#define SERVER_IP "104.236.25.60"
+#define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 8961
 
 std::string scene = "main";
@@ -41,13 +41,14 @@ int currentTheme = 1;
 // Chat buffer
 // -----------------------
 std::deque<std::string> g_ChatBuffer;
-const size_t MAX_CHAT_LINES = 10;
+int g_ChatScrollOffset = 0; // How many lines up the user has scrolled
 
 void AddChatLine(const std::string &msg)
 {
-    if (g_ChatBuffer.size() >= MAX_CHAT_LINES)
-        g_ChatBuffer.pop_front();
+    bool wasAtBottom = (g_ChatScrollOffset == 0);
     g_ChatBuffer.push_back(msg);
+    if (wasAtBottom)
+        g_ChatScrollOffset = 0; // stay at bottom
 }
 
 // -----------------------
@@ -98,10 +99,23 @@ void DrawText(SDL_Renderer *renderer, const char *text, int x, int y, int size, 
 
 void DrawChatBuffer(SDL_Renderer *renderer, int startX, int startY, int lineHeight, SDL_Color color)
 {
+    int visibleLines = 8; // How many lines fit on screen
+    int totalLines = g_ChatBuffer.size();
+
+    // Clamp offset
+    if (g_ChatScrollOffset < 0)
+        g_ChatScrollOffset = 0;
+    if (g_ChatScrollOffset > (int)totalLines - visibleLines)
+        g_ChatScrollOffset = std::max(0, (int)totalLines - visibleLines);
+
+    // Draw from bottom to top, respecting scroll
+    int startLine = std::max(0, totalLines - visibleLines - g_ChatScrollOffset);
+    int endLine = std::min(totalLines, startLine + visibleLines);
+
     int y = startY;
-    for (const auto &line : g_ChatBuffer)
+    for (int i = startLine; i < endLine; ++i)
     {
-        DrawText(renderer, line.c_str(), startX, y, 48, color);
+        DrawText(renderer, g_ChatBuffer[i].c_str(), startX, y, 48, color);
         y += lineHeight;
     }
 }
@@ -281,6 +295,20 @@ void handle_button_down(const SDL_ControllerButtonEvent& e)
     }
 }
 
+void handle_axis_motion(const SDL_ControllerAxisEvent& e)
+{
+    if (scene == "main" && textSendType.empty()) {
+        if (e.axis == SDL_CONTROLLER_AXIS_LEFTY) {
+            if (e.value < -10000) {
+                g_ChatScrollOffset = std::min(g_ChatScrollOffset + 1, (int)g_ChatBuffer.size());
+            }
+            else if (e.value > 10000) {
+                g_ChatScrollOffset = std::max(g_ChatScrollOffset - 1, 0);
+            }
+        }
+    }
+}
+
 void handle_event(const SDL_Event& event)
 {
     switch (event.type) {
@@ -293,6 +321,9 @@ void handle_event(const SDL_Event& event)
             break;
         case SDL_CONTROLLERBUTTONDOWN:
             handle_button_down(event.cbutton);
+        case SDL_CONTROLLERAXISMOTION:
+            handle_axis_motion(event.caxis);
+            break;
     }
 }
 
