@@ -115,7 +115,7 @@ void DrawChatBuffer(SDL_Renderer *renderer, int startX, int startY, int lineHeig
     int y = startY;
     for (int i = startLine; i < endLine; ++i)
     {
-        DrawText(renderer, g_ChatBuffer[i].c_str(), startX, y, 48, color);
+        DrawText(renderer, g_ChatBuffer[i].c_str(), startX, y, 24, color);
         y += lineHeight;
     }
 }
@@ -200,7 +200,6 @@ int ConnectToServer()
 
     // Connected successfully
     SetNonBlocking(sock);
-    AddChatLine("Connected to server.");
     return sock;
 }
 
@@ -330,8 +329,35 @@ int main(int argc, char **argv)
     int sock = ConnectToServer();
 
     char input[512] = "";
-    SDL_Window *window = SDL_CreateWindow(NULL, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP);
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    
+    // Initialize Wii U video subsystem
+    SDL_Window *tvWindow = NULL;
+    SDL_Window *drcWindow = NULL;
+    SDL_Renderer *tvRenderer = NULL;
+    SDL_Renderer *drcRenderer = NULL;
+
+    // Set vsync hint before creating windows
+    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
+
+    // TV Window (primary display)
+    tvWindow = SDL_CreateWindow("TV", 
+        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        1280, 720,  // Use 720p resolution
+        SDL_WINDOW_FULLSCREEN | SDL_WINDOW_WIIU_TV_ONLY);
+    if (tvWindow) {
+        tvRenderer = SDL_CreateRenderer(tvWindow, 0,  // Use first display driver
+            SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    }
+
+    // GamePad Window
+    drcWindow = SDL_CreateWindow("DRC",
+        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        854, 480,  // Native GamePad resolution
+        SDL_WINDOW_WIIU_GAMEPAD_ONLY | SDL_WINDOW_WIIU_PREVENT_SWAP);
+    if (drcWindow) {
+        drcRenderer = SDL_CreateRenderer(drcWindow, 1,  // Use second display driver
+            SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    }
 
     SDL_Color black = {0, 0, 0, 255};
 
@@ -381,33 +407,43 @@ int main(int argc, char **argv)
         // Handle incoming messages
         TryReceive(&sock);
 
-        // Render
-        SDL_SetRenderDrawColor(renderer, current.backgroundColor.r, current.backgroundColor.g, current.backgroundColor.b, current.backgroundColor.a);
-        SDL_RenderClear(renderer);
+        // Render TV Screen
+        if (tvRenderer) {
+            SDL_SetRenderDrawColor(tvRenderer, current.backgroundColor.r, current.backgroundColor.g, current.backgroundColor.b, current.backgroundColor.a);
+            SDL_RenderClear(tvRenderer);
 
-        if (scene == "main") {
-            DrawText(renderer, "aurorachat", 1300, 10, 96, current.textColor);
-            DrawText(renderer, "v0.0.3", 1700, 120, 64, current.textColor);
-            DrawText(renderer, (current.name).c_str(), 820, 0, 32, current.textColor);
-            DrawText(renderer, "A: Change Username", 0, 20, 64, current.textColor);
-            DrawText(renderer, "B: Send Message", 0, 110, 64, current.textColor);
-            DrawText(renderer, "L: Rules", 0, 200, 64, current.textColor);
-            DrawText(renderer, "D-PAD: Scroll Chat/Change Theme", 0, 290, 64, current.textColor);
-            DrawText(renderer, ("Username: " + username).c_str(), 0, 900, 96, current.textColor);
+            if (scene == "main") {
+                // TV content
+                DrawText(tvRenderer, "aurorachat", 1300, 10, 96, current.textColor);
+                DrawText(tvRenderer, "v0.0.3", 1700, 120, 64, current.textColor);
+                DrawText(tvRenderer, (current.name).c_str(), 820, 0, 32, current.textColor);
+                DrawText(tvRenderer, "A: Change Username", 0, 20, 64, current.textColor);
+                DrawText(tvRenderer, "B: Send Message", 0, 110, 64, current.textColor);
+                DrawText(tvRenderer, "L: Rules", 0, 200, 64, current.textColor);
+                DrawText(tvRenderer, "D-PAD: Scroll Chat/Change Theme", 0, 290, 64, current.textColor);
+                DrawText(tvRenderer, ("Username: " + username).c_str(), 0, 900, 96, current.textColor);
 
-            DrawImage(renderer, 1350, 10, "romfs:/res/logo.png");
-            DrawChatBuffer(renderer, 0, 400, 60, current.textColor);
+                DrawImage(tvRenderer, 1350, 10, "romfs:/res/logo.png");
+            }
+            else if (scene == "rules") {
+                DrawText(tvRenderer, "Rule 2: No Swearing", 0, 380, 64, current.textColor);
+                DrawText(tvRenderer, "(Press X to Go Back)", 0, 20, 64, current.textColor);
+                DrawText(tvRenderer, "Rule 1: No Spamming", 0, 200, 64, current.textColor);
+                DrawText(tvRenderer, "Rule 3: No Impersonating", 0, 560, 64, current.textColor);
+                DrawText(tvRenderer, "Rule 4: No Politics", 0, 740, 64, current.textColor);
+                DrawText(tvRenderer, "Breaking rules may result in a ban", 0, 920, 64, current.textColor);
+            }
+            SDL_RenderPresent(tvRenderer);
         }
-        else if (scene == "rules") {
-            DrawText(renderer, "Rule 2: No Swearing", 0, 380, 64, current.textColor);
-            DrawText(renderer, "(Press X to Go Back)", 0, 20, 64, current.textColor);
-            DrawText(renderer, "Rule 1: No Spamming", 0, 200, 64, current.textColor);
-            DrawText(renderer, "Rule 3: No Impersonating", 0, 560, 64, current.textColor);
-            DrawText(renderer, "Rule 4: No Politics", 0, 740, 64, current.textColor);
-            DrawText(renderer, "Breaking rules may result in a ban", 0, 920, 64, current.textColor);
-        }
 
-        SDL_RenderPresent(renderer);
+        // Render DRC (GamePad) Screen
+        if (drcRenderer) {
+            SDL_SetRenderDrawColor(drcRenderer, current.backgroundColor.r, current.backgroundColor.g, current.backgroundColor.b, current.backgroundColor.a);
+            SDL_RenderClear(drcRenderer);
+
+            DrawChatBuffer(drcRenderer, 0, 40, 16, current.textColor);
+            SDL_RenderPresent(drcRenderer);
+        }
     }
 
     if (sock >= 0) {
@@ -417,6 +453,15 @@ int main(int argc, char **argv)
 
     if (gController)
         SDL_GameControllerClose(gController);
+
+    if (drcRenderer)
+        SDL_DestroyRenderer(drcRenderer);
+    if (drcWindow)
+        SDL_DestroyWindow(drcWindow);
+    if (tvRenderer)
+        SDL_DestroyRenderer(tvRenderer);
+    if (tvWindow)
+        SDL_DestroyWindow(tvWindow);
 
     IMG_Quit();
     FreeFonts();
