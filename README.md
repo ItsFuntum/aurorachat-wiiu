@@ -7,7 +7,7 @@ A chatting application originally for the Nintendo 3DS and 2DS line of systems, 
 - [X] Wii U Keyboard support
 - [X] Themes
 - [X] Scrollable chat
-- [X] Dual-screen rendering (~I haven't figured this out yet, it may not even be possible.~ It wasn't even that hard...)
+- [X] Dual-screen rendering (~I haven't figured this out yet, it may not even be possible.~ 🥀It wasn't even that hard...)
 - [ ] Sounds
 - [ ] Background music (we need Nintendo vibes)
 - [ ] Auroraccounts integration (can't be done yet)
