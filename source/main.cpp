@@ -12,7 +12,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_syswm.h>
 
-#define SERVER_IP "127.0.0.1"
+#define SERVER_IP "104.236.25.60"
 #define SERVER_PORT 8961
 
 std::string scene = "main";
