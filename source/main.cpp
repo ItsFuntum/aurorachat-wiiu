@@ -38,20 +38,6 @@ Theme current = Themes[1];
 int currentTheme = 1;
 
 // -----------------------
-// Chat buffer
-// -----------------------
-std::deque<std::string> g_ChatBuffer;
-int g_ChatScrollOffset = 0; // How many lines up the user has scrolled
-
-void AddChatLine(const std::string &msg)
-{
-    bool wasAtBottom = (g_ChatScrollOffset == 0);
-    g_ChatBuffer.push_back(msg);
-    if (wasAtBottom)
-        g_ChatScrollOffset = 0; // stay at bottom
-}
-
-// -----------------------
 // Font system
 // -----------------------
 std::map<int, TTF_Font*> g_FontCache;
@@ -97,23 +83,22 @@ void DrawText(SDL_Renderer *renderer, const char *text, int x, int y, int size, 
     SDL_DestroyTexture(texture);
 }
 
+// -----------------------
+// Chat buffer
+// -----------------------
+std::deque<std::string> g_ChatBuffer;
+int chatPosY = 0;
+
+void AddChatLine(const std::string &msg)
+{
+    g_ChatBuffer.push_back(msg);
+}
+
 void DrawChatBuffer(SDL_Renderer *renderer, int startX, int startY, int lineHeight, SDL_Color color)
 {
-    int visibleLines = 8; // How many lines fit on screen
-    int totalLines = g_ChatBuffer.size();
+    int y = startY + chatPosY;
 
-    // Clamp offset
-    if (g_ChatScrollOffset < 0)
-        g_ChatScrollOffset = 0;
-    if (g_ChatScrollOffset > (int)totalLines - visibleLines)
-        g_ChatScrollOffset = std::max(0, (int)totalLines - visibleLines);
-
-    // Draw from bottom to top, respecting scroll
-    int startLine = std::max(0, totalLines - visibleLines - g_ChatScrollOffset);
-    int endLine = std::min(totalLines, startLine + visibleLines);
-
-    int y = startY;
-    for (int i = startLine; i < endLine; ++i)
+    for (int i = 0; i < g_ChatBuffer.size(); ++i)
     {
         DrawText(renderer, g_ChatBuffer[i].c_str(), startX, y, 24, color);
         y += lineHeight;
@@ -278,19 +263,13 @@ void handle_button_down(const SDL_ControllerButtonEvent& e)
                 scene = "rules";
             }
             else if (e.button == SDL_CONTROLLER_BUTTON_DPAD_UP) {
-                g_ChatScrollOffset = std::min(g_ChatScrollOffset + 1, (int)g_ChatBuffer.size());
-            }
-            else if (e.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN) {
-                g_ChatScrollOffset = std::max(g_ChatScrollOffset - 1, 0);
-            }
-            else if (e.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT) {
-                currentTheme--;
-                if (currentTheme < 1) currentTheme = Themes.size();
-                current = Themes[currentTheme];
-            }
-            else if (e.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT) {
                 currentTheme++;
                 if (currentTheme > Themes.size()) currentTheme = 1;
+                current = Themes[currentTheme];
+            }
+            else if (e.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN) {
+                currentTheme--;
+                if (currentTheme < 1) currentTheme = Themes.size();
                 current = Themes[currentTheme];
             }
         }
@@ -312,6 +291,7 @@ void handle_event(const SDL_Event& event)
             break;
         case SDL_CONTROLLERBUTTONDOWN:
             handle_button_down(event.cbutton);
+            break;
     }
 }
 
@@ -365,6 +345,10 @@ int main(int argc, char **argv)
 
     AddChatLine("-chat-");
 
+    Uint32 lastTicks = 0;
+    const int AXIS_DEADZONE = 8000;  // deadzone for joystick
+    const float MAX_SPEED = 300.0f;  // pixels per second when stick is fully pushed
+
     SDL_Event event;
     SDL_GameController* gController = nullptr;
 
@@ -378,7 +362,24 @@ int main(int argc, char **argv)
     SDL_WiiUSysWMEventType Keyboard_Ok = SDL_WIIU_SYSWM_SWKBD_OK_FINISH_EVENT;
     SDL_WiiUSysWMEventType Keyboard_Cancel = SDL_WIIU_SYSWM_SWKBD_CANCEL_EVENT;
 
+    lastTicks = SDL_GetTicks();
     while (WHBProcIsRunning()) {
+        // Continuous axis polling to move chatPosY while held
+        Uint32 now = SDL_GetTicks();
+        float deltaSec = (now - lastTicks) / 1000.0f;
+        lastTicks = now;
+        if (gController) {
+            Sint16 axisY = SDL_GameControllerGetAxis(gController, SDL_CONTROLLER_AXIS_LEFTY);
+        
+            if (axisY > AXIS_DEADZONE || axisY < -AXIS_DEADZONE) {
+                // Normalize axis value to -1.0 .. 1.0
+                float norm = axisY / 32767.0f;  // note: axisY is signed
+                // Multiply by speed and frame delta to get pixel movement
+                float move = norm * MAX_SPEED * deltaSec;
+                chatPosY -= (int)move;
+            }
+        }
+
         while (SDL_PollEvent(&event)) {
             handle_event(event);
 
@@ -420,7 +421,7 @@ int main(int argc, char **argv)
                 DrawText(tvRenderer, "A: Change Username", 0, 20, 64, current.textColor);
                 DrawText(tvRenderer, "B: Send Message", 0, 110, 64, current.textColor);
                 DrawText(tvRenderer, "L: Rules", 0, 200, 64, current.textColor);
-                DrawText(tvRenderer, "D-PAD: Scroll Chat/Change Theme", 0, 290, 64, current.textColor);
+                DrawText(tvRenderer, "D-PAD: Change Theme", 0, 290, 64, current.textColor);
                 DrawText(tvRenderer, ("Username: " + username).c_str(), 0, 900, 96, current.textColor);
 
                 DrawImage(tvRenderer, 1350, 10, "romfs:/res/logo.png");
@@ -441,7 +442,7 @@ int main(int argc, char **argv)
             SDL_SetRenderDrawColor(drcRenderer, current.backgroundColor.r, current.backgroundColor.g, current.backgroundColor.b, current.backgroundColor.a);
             SDL_RenderClear(drcRenderer);
 
-            DrawChatBuffer(drcRenderer, 0, 40, 16, current.textColor);
+            DrawChatBuffer(drcRenderer, 0, 40, 40, current.textColor);
             SDL_RenderPresent(drcRenderer);
         }
     }
