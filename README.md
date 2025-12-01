@@ -30,6 +30,6 @@ Once the environment is setup:
 git clone https://github.com/ItsFuntum/aurorachat-wiiu.git
 cd aurorachat-wiiu
 mkdir build && cd build
-/opt/devkitpro/portlibs/wiiu/bin/powerpc-eabi-cmake ../
+/opt/devkitpro/portlibs/wiiu/bin/powerpc-eabi-cmake ../ -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 make
 ```
