@@ -2,16 +2,20 @@
 #include "chat.h"
 #include <SDL2/SDL_image.h>
 
-void DrawImage(SDL_Renderer* renderer, int x, int y, const char* file) {
-    SDL_Texture* texture = IMG_LoadTexture(renderer, file);
-    if (!texture) {
-        AddChatLine(std::string("Failed to load image: ") + IMG_GetError());
-        return;
+SDL_Texture* LoadImage(SDL_Renderer* renderer, const char* path) {
+    SDL_Surface* surface = IMG_Load(path);  // Load PNG/JPG/etc
+    if (!surface) {
+        SDL_Log("Failed to load image %s: %s", path, IMG_GetError());
+        return nullptr;
     }
 
-    int w, h;
-    SDL_QueryTexture(texture, nullptr, nullptr, &w, &h);
-    SDL_Rect dst = { x, y, w, h };
-    SDL_RenderCopy(renderer, texture, nullptr, &dst);
-    SDL_DestroyTexture(texture);
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    if (!texture) {
+        SDL_Log("Failed to create texture from %s: %s", path, SDL_GetError());
+        return nullptr;
+    }
+
+    return texture;
 }

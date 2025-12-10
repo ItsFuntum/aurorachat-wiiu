@@ -64,6 +64,10 @@ int main(int argc, char **argv)
 
     AddChatLine("-chat-");
 
+    SDL_Texture* logoTexture = LoadImage(tvRenderer, "romfs:/res/logo.png");
+    SDL_Rect logoRect = {1350, 10, 0, 0};
+    SDL_QueryTexture(logoTexture, NULL, NULL, &logoRect.w, &logoRect.h);
+
     Uint32 lastTicks = 0;
     const int AXIS_DEADZONE = 8000;  // deadzone for joystick
     const float MAX_SPEED = 300.0f;  // pixels per second when stick is fully pushed
@@ -143,7 +147,7 @@ int main(int argc, char **argv)
                 DrawText(tvRenderer, "D-PAD: Change Theme", 0, 290, 64, current.textColor);
                 DrawText(tvRenderer, ("Username: " + username).c_str(), 0, 900, 96, current.textColor);
 
-                DrawImage(tvRenderer, 1350, 10, "romfs:/res/logo.png");
+                SDL_RenderCopy(tvRenderer, logoTexture, NULL, &logoRect);
             }
             else if (scene == "rules") {
                 DrawText(tvRenderer, "Rule 2: No Swearing", 0, 380, 64, current.textColor);
