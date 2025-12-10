@@ -139,7 +139,7 @@ int main(int argc, char **argv)
             if (scene == "main") {
                 // TV content
                 DrawText(tvRenderer, "aurorachat", 1300, 10, 96, current.textColor);
-                DrawText(tvRenderer, "v0.0.4", 1700, 120, 64, current.textColor);
+                DrawText(tvRenderer, "v0.0.5", 1700, 120, 64, current.textColor);
                 DrawText(tvRenderer, (current.name).c_str(), 820, 0, 32, current.textColor);
                 DrawText(tvRenderer, "A: Change Username", 0, 20, 64, current.textColor);
                 DrawText(tvRenderer, "B: Send Message", 0, 110, 64, current.textColor);
