@@ -7,9 +7,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include <coreinit/thread.h>
-#include <coreinit/time.h>
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/select.h>
@@ -22,9 +19,6 @@
 
 #define SERVER_IP "104.236.25.60"
 #define SERVER_PORT 8961
-
-#include <atomic>
-extern std::atomic<bool> gNetPaused;
 
 int ConnectToServer();
 void TryReceive(int* sock);

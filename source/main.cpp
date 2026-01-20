@@ -2,7 +2,6 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <romfs-wiiu.h>
-#include <proc_ui/procui.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -88,24 +87,6 @@ int main(int argc, char **argv)
 
     lastTicks = SDL_GetTicks();
     while (WHBProcIsRunning()) {
-        ProcUIStatus status = ProcUIProcessMessages(true);
-
-        if (status == PROCUI_STATUS_RELEASE_FOREGROUND)
-        {
-            gNetPaused = true;
-            ProcUIDrawDoneRelease();
-            continue;
-        }
-        else if (status == PROCUI_STATUS_IN_FOREGROUND)
-        {
-            gNetPaused = false;
-        }
-        else if (status == PROCUI_STATUS_EXITING)
-        {
-            gNetPaused = true;
-            break;
-        }
-
         // Continuous axis polling to move chatPosY while held
         Uint32 now = SDL_GetTicks();
         float deltaSec = (now - lastTicks) / 1000.0f;
