@@ -1,5 +1,7 @@
 #include "net.h"
 
+std::atomic<bool> gNetPaused{false};
+
 static bool SetNonBlocking(int sock)
 {
     if (sock < 0) return false;
@@ -64,8 +66,16 @@ void TryReceive(int *sock)
 {
     if (*sock < 0) return;
 
+    int flags = 1;
+    setsockopt(*sock, SOL_SOCKET, SO_NBIO, &flags, sizeof(flags)); // Ensure non-blocking
+
     char buf[512];
     while (true) {
+        if (gNetPaused) {
+            OSSleepTicks(OSMillisecondsToTicks(16));
+            continue;
+        }
+
         ssize_t r = recv(*sock, buf, sizeof(buf) - 1, 0);
         if (r > 0) {
             buf[r] = '\0';
@@ -104,7 +114,7 @@ void send_chat_line(int *sock, const char *username, const char *input)
     else
         snprintf(sendbuf, sizeof(sendbuf), "%s\n", input);
 
-    if (*sock >= 0) {
+    if (*sock >= 0 && !gNetPaused) {
         ssize_t sent = send(*sock, sendbuf, strlen(sendbuf), 0);
         if (sent < 0) {
             AddChatLine("Send failed, reconnecting...");
