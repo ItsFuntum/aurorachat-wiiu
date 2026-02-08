@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> aurorachat for Wii U is currently incompatible with the latest version of aurorachat, please wait for an update.
+
 # [aurorachat](https://github.com/mii-man/aurorachat) for Wii U
 A chatting application originally for the Nintendo 3DS and 2DS line of systems, now on Wii U.
 
