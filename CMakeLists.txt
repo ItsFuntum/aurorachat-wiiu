@@ -26,6 +26,12 @@ target_link_libraries(aurorachat-wiiu
     SDL2_image
     freetype
     harfbuzz
+    png
+    z
+    bz2
+    brotlidec
+    brotlienc
+    brotlicommon
 )
 
 # Create RPX
