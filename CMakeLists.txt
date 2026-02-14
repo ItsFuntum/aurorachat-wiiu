@@ -45,6 +45,8 @@ add_custom_command(TARGET aurorachat-wiiu POST_BUILD
         --name "aurorachat for Wii U"
         --short-name "aurorachat"
         --author "Funtum"
-        --icon ${CMAKE_SOURCE_DIR}/aurorachat-wiiu-icon.png
+        --icon ${CMAKE_SOURCE_DIR}/meta/icon.png
+        --tv-image ${CMAKE_SOURCE_DIR}/meta/banner.png
+        --drc-image ${CMAKE_SOURCE_DIR}/meta/banner.png
     COMMENT "Packaging aurorachat-wiiu.wuhb..."
 )
