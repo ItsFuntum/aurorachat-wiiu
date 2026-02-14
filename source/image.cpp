@@ -1,6 +1,5 @@
 #include "image.h"
 #include "chat.h"
-#include <SDL2/SDL_image.h>
 
 SDL_Texture* LoadImage(SDL_Renderer* renderer, const char* path) {
     SDL_Surface* surface = IMG_Load(path);  // Load PNG/JPG/etc

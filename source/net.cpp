@@ -8,55 +8,42 @@ static bool SetNonBlocking(int sock)
     return fcntl(sock, F_SETFL, flags | O_NONBLOCK) != -1;
 }
 
-int ConnectToServer()
+int ConnectToTCPServer()
 {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock < 0)
-        return -1;
+    if (sock < 0) return -1;
 
-    SetNonBlocking(sock);
-
-    struct sockaddr_in serverAddr;
-    memset(&serverAddr, 0, sizeof(serverAddr));
+    struct sockaddr_in serverAddr{};
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(SERVER_PORT);
+    serverAddr.sin_port = htons(SERVER_PORT_TCP);
     serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
 
-    int res = connect(sock, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
-    if (res < 0 && errno != EINPROGRESS)
+    if (connect(sock, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0)
     {
-        AddChatLine("Immediate connect() failure.");
         close(sock);
         return -1;
     }
 
-    // Wait up to 5 seconds for connection
-    fd_set wfds;
-    FD_ZERO(&wfds);
-    FD_SET(sock, &wfds);
-    struct timeval tv = {5, 0};
-
-    res = select(sock + 1, NULL, &wfds, NULL, &tv);
-    if (res <= 0)
-    {
-        AddChatLine("Connection timed out.");
-        close(sock);
-        return -1;
-    }
-
-    // Check for socket errors
-    int so_error = 0;
-    socklen_t len = sizeof(so_error);
-    getsockopt(sock, SOL_SOCKET, SO_ERROR, &so_error, &len);
-    if (so_error != 0)
-    {
-        AddChatLine("Connection failed.");
-        close(sock);
-        return -1;
-    }
-
-    // Connected successfully
     SetNonBlocking(sock);
+    return sock;
+}
+
+int ConnectToHTTPServer()
+{
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0) return -1;
+
+    struct sockaddr_in serverAddr{};
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(SERVER_PORT_HTTP);
+    serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
+
+    if (connect(sock, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0)
+    {
+        close(sock);
+        return -1;
+    }
+
     return sock;
 }
 
@@ -94,26 +81,97 @@ void TryReceive(int *sock)
     }
 }
 
-void send_chat_line(int *sock, const char *username, const char *input)
+bool send_api_request(const std::string& jsonBody)
 {
-    if (!input || input[0] == '\0') return;
+    int sock = ConnectToHTTPServer();
+    if (sock < 0) return false;
 
-    char sendbuf[600];
-    if (username && username[0] != '\0')
-        snprintf(sendbuf, sizeof(sendbuf), "<%s>: %s\n", username, input);
-    else
-        snprintf(sendbuf, sizeof(sendbuf), "%s\n", input);
+    int bodyLen = jsonBody.length();
 
-    if (*sock >= 0) {
-        ssize_t sent = send(*sock, sendbuf, strlen(sendbuf), 0);
-        if (sent < 0) {
-            AddChatLine("Send failed, reconnecting...");
-            close(*sock);
-            *sock = -1;
+    char request[2048];
+    int reqLen = snprintf(request, sizeof(request),
+        "POST /api HTTP/1.1\r\n"
+        "Host: 104.236.25.60:3072\r\n"
+        "Content-Type: application/json\r\n"
+        "Content-Length: %d\r\n"
+        "Connection: close\r\n"
+        "\r\n"
+        "%s",
+        bodyLen,
+        jsonBody.c_str()
+    );
+
+    // ---- Send (handle partial send properly) ----
+    int totalSent = 0;
+    while (totalSent < reqLen) {
+        int sent = send(sock, request + totalSent, reqLen - totalSent, 0);
+        if (sent <= 0) {
+            close(sock);
+            return false;
+        }
+        totalSent += sent;
+    }
+
+    // ---- Read full response ----
+    char buffer[1024];
+    while (recv(sock, buffer, sizeof(buffer), 0) > 0) {
+        // Optional: store response if needed
+    }
+
+    close(sock);
+    return true;
+}
+
+std::string json_escape(const char* input)
+{
+    std::string out;
+    for (const char* p = input; *p; ++p) {
+        switch (*p) {
+            case '\"': out += "\\\""; break;
+            case '\\': out += "\\\\"; break;
+            case '\n': out += "\\n"; break;
+            case '\r': out += "\\r"; break;
+            case '\t': out += "\\t"; break;
+            default: out += *p; break;
         }
     }
+    return out;
+}
 
-    if (*sock < 0) {
-        *sock = ConnectToServer();
-    }
+bool make_account(const char* username, const char* password)
+{
+    std::string body =
+        "{\"cmd\":\"MAKEACC\",\"username\":\"" +
+        json_escape(username) +
+        "\",\"password\":\"" +
+        json_escape(password) +
+        "\"}";
+
+    return send_api_request(body);
+}
+
+bool login_account(const char* username, const char* password)
+{
+    std::string body =
+        "{\"cmd\":\"LOGINACC\",\"username\":\"" +
+        json_escape(username) +
+        "\",\"password\":\"" +
+        json_escape(password) +
+        "\"}";
+
+    return send_api_request(body);
+}
+
+bool send_chat(const char* username, const char* password, const char* message)
+{
+    std::string body =
+        "{\"cmd\":\"CHAT\",\"content\":\"" +
+        json_escape(message) +
+        "\",\"username\":\"" +
+        json_escape(username) +
+        "\",\"password\":\"" +
+        json_escape(password) +
+        "\"}";
+
+    return send_api_request(body);
 }

@@ -1,5 +1,4 @@
 #include "font.h"
-#include <map>
 
 static std::map<int, TTF_Font*> g_FontCache;
 static const char* g_FontPath = "romfs:/res/FOT-RodinNTLG Pro DB.otf";

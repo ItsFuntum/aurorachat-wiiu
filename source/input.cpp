@@ -1,40 +1,29 @@
-#include "theme.h"
 #include "input.h"
 
-std::string scene = "main";
-std::string username = "";
-std::string textBuffer = "";
+std::string scene = "selection_menu";
 std::string textSendType = "";
+
+SDL_Color textColor = {0, 0, 0, 255};
+SDL_Color themeColor = {255, 255, 255, 255};
+
+bool darkMode = false;
 
 void handle_button_down(const SDL_ControllerButtonEvent& e)
 {
     if (textSendType.empty()) {
-        if (scene == "main") {
-            if (e.button == SDL_CONTROLLER_BUTTON_A) {
-                textSendType = "username";
-                SDL_WiiUSetSWKBDInitialText(username.c_str());
-                SDL_StartTextInput();
-            }
-            else if (e.button == SDL_CONTROLLER_BUTTON_B) {
-                textSendType = "message";
-                SDL_StartTextInput();
-            }
-            else if (e.button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER) {
-                scene = "rules";
-            }
-            else if (e.button == SDL_CONTROLLER_BUTTON_DPAD_UP) {
-                currentTheme++;
-                if (currentTheme > Themes.size()) currentTheme = 1;
-                current = Themes[currentTheme];
-            }
-            else if (e.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN) {
-                currentTheme--;
-                if (currentTheme < 1) currentTheme = Themes.size();
-                current = Themes[currentTheme];
-            }
+        if (e.button == SDL_CONTROLLER_BUTTON_X) {
+            darkMode = !darkMode;
+            
+            textColor = darkMode ? SDL_Color{255,255,255,255} : SDL_Color{0,0,0,255};
+            themeColor = darkMode ? SDL_Color{0,0,0,255} : SDL_Color{255,255,255,255};
         }
-        else if (e.button == SDL_CONTROLLER_BUTTON_X) {
-            scene = "main";
+
+        if (scene == "chat") {
+            if (e.button == SDL_CONTROLLER_BUTTON_A) {
+                textSendType = "message";
+                SDL_WiiUSetSWKBDHintText("Say something...");
+                SDL_StartTextInput();
+            }
         }
     }
 }
@@ -53,4 +42,12 @@ void handle_event(const SDL_Event& event)
             handle_button_down(event.cbutton);
             break;
     }
+}
+
+// Touch Input
+bool PointInRect(int x, int y, const SDL_Rect& r) {
+    return (x >= r.x &&
+            x <  r.x + r.w &&
+            y >= r.y &&
+            y <  r.y + r.h);
 }

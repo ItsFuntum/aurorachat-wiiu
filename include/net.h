@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cerrno>
 #include <cstddef>
+#include <string>
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -18,8 +19,17 @@
 #include "chat.h"
 
 #define SERVER_IP "104.236.25.60"
-#define SERVER_PORT 8961
+#define SERVER_PORT_TCP 4040
+#define SERVER_PORT_HTTP 3072
 
-int ConnectToServer();
+int ConnectToTCPServer();
+int ConnectToHTTPServer();
+
 void TryReceive(int* sock);
-void send_chat_line(int* sock, const char* username, const char* input);
+bool send_api_request(const std::string& jsonBody);
+
+std::string json_escape(const char* input);
+
+bool make_account(const char* username, const char* password);
+bool login_account(const char* username, const char* password);
+bool send_chat(const char* username, const char* password, const char* message);

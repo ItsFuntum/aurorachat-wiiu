@@ -1,6 +1,7 @@
 #pragma once
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <map>
 
 TTF_Font* GetFont(int size);
 void FreeFonts();

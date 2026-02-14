@@ -4,9 +4,12 @@
 #include <string>
 
 extern std::string scene;
-extern std::string username;
-extern std::string textBuffer;
 extern std::string textSendType;
+
+extern SDL_Color textColor;
+extern SDL_Color themeColor;
 
 void handle_event(const SDL_Event& event);
 void handle_button_down(const SDL_ControllerButtonEvent& e);
+
+bool PointInRect(int x, int y, const SDL_Rect& r);
