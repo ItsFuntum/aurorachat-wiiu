@@ -20,7 +20,7 @@
 int main(int argc, char **argv)
 {
     WHBProcInit();
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_AUDIO);
     romfsInit();
     TTF_Init();
     IMG_Init(IMG_INIT_PNG);
@@ -36,6 +36,17 @@ int main(int argc, char **argv)
     int sock = ConnectToTCPServer();
 
     char input[512] = "";
+
+    // Initialize audio to stop loading screen music from playing
+    SDL_AudioSpec want{}, have{};
+    want.freq = 48000;
+    want.format = AUDIO_S16;
+    want.channels = 2;
+    want.samples = 4096;
+    want.callback = nullptr;
+
+    SDL_OpenAudio(&want, &have);
+    SDL_PauseAudio(0);
     
     // Initialize Wii U video subsystem
     SDL_Window *tvWindow = NULL;
