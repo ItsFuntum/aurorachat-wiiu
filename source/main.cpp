@@ -236,7 +236,7 @@ int main(int argc, char **argv)
 
             DrawText(tvRenderer, "Aurorachat", 1500, 20, 64, { 0, 0, 100, 200 });
             DrawText(tvRenderer, "for Wii U", 1580, 75, 64, { 0, 0, 100, 200 });
-            DrawText(tvRenderer, "version 6", 1610, 133, 48, { 0, 0, 100, 200 });
+            DrawText(tvRenderer, "version 5", 1610, 133, 48, { 0, 0, 100, 200 });
 
             if (scene == "selection_menu") {
                 DrawText(tvRenderer, "Sign Up or Sign In", 600, 300, 64, textColor);
