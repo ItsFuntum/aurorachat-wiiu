@@ -1,4 +1,5 @@
 #include "net.h"
+#include "chat.h"
 
 static bool SetNonBlocking(int sock)
 {
@@ -47,7 +48,7 @@ int ConnectToHTTPServer()
     return sock;
 }
 
-void TryReceive(int *sock)
+void TryReceive(int *sock, SDL_Renderer* renderer, int fontSize, SDL_Color textColor, int maxWidth)
 {
     if (*sock < 0) return;
 
@@ -60,20 +61,20 @@ void TryReceive(int *sock)
             for (char *p = buf; *p; ++p) {
                 if (*p == '\n') {
                     *p = '\0';
-                    AddChatLine(start);
+                    AddChatLine(renderer, start, fontSize, textColor, maxWidth);
                     start = p + 1;
                 }
             }
-            if (*start) AddChatLine(start);
+            if (*start) AddChatLine(renderer, start, fontSize, textColor, maxWidth);
         } else if (r == 0) {
-            AddChatLine("Server disconnected.");
+            AddChatLine(renderer, "Server disconnected.", fontSize, textColor, maxWidth);
             close(*sock);
             *sock = -1;
             break;
         } else {
             if (errno == EWOULDBLOCK || errno == EAGAIN)
                 break;
-            AddChatLine("Failed to connect to aurorachat server.");
+            AddChatLine(renderer, "Failed to connect to aurorachat server.", fontSize, textColor, maxWidth);
             close(*sock);
             *sock = -1;
             break;

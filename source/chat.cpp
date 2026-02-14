@@ -1,18 +1,84 @@
 #include "chat.h"
 #include "font.h"
 
-static std::deque<std::string> g_ChatBuffer;
+std::vector<ChatLine> chatLines;
 int chatPosY = 0;
 
-void AddChatLine(const std::string& msg) {
-    g_ChatBuffer.push_back(msg);
+void AddChatLine(SDL_Renderer* renderer,
+                 const std::string& text,
+                 int fontSize,
+                 SDL_Color color,
+                 int maxWidth)
+{
+    ChatLine line;
+    line.rawText = text;
+
+    line.texture = DrawTextToTexture(
+        renderer,
+        text.c_str(),
+        fontSize,
+        color,
+        maxWidth
+    );
+
+    if (!line.texture) return;
+
+    int w, h;
+    SDL_QueryTexture(line.texture, nullptr, nullptr, &w, &h);
+    line.height = h;
+
+    chatLines.push_back(line);
 }
 
-void DrawChatBuffer(SDL_Renderer* renderer, int startX, int startY, int lineHeight, SDL_Color color) {
-    int y = startY + chatPosY;
+void DrawChatBuffer(SDL_Renderer* renderer,
+                    int x,
+                    int y)
+{
+    int drawY = y + chatPosY;
 
-    for (const auto& line : g_ChatBuffer) {
-        DrawText(renderer, line.c_str(), startX, y, 24, color);
-        y += lineHeight;
+    for (auto& line : chatLines)
+    {
+        int w, h;
+        SDL_QueryTexture(line.texture, nullptr, nullptr, &w, &h);
+
+        SDL_Rect dst = { x, drawY, w, h };
+        SDL_RenderCopy(renderer, line.texture, nullptr, &dst);
+
+        drawY += h + 6; // spacing between messages
+    }
+}
+
+void FreeChatTextures()
+{
+    for (auto& line : chatLines)
+    {
+        if (line.texture)
+            SDL_DestroyTexture(line.texture);
+    }
+
+    chatLines.clear();
+}
+
+void RebuildChatTextures(SDL_Renderer* renderer,
+                         int fontSize,
+                         SDL_Color color,
+                         int maxWidth)
+{
+    for (auto& line : chatLines)
+    {
+        if (line.texture)
+            SDL_DestroyTexture(line.texture);
+
+        line.texture = DrawTextToTexture(
+            renderer,
+            line.rawText.c_str(),
+            fontSize,
+            color,
+            maxWidth
+        );
+
+        int w, h;
+        SDL_QueryTexture(line.texture, nullptr, nullptr, &w, &h);
+        line.height = h;
     }
 }

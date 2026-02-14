@@ -37,6 +37,9 @@ int main(int argc, char **argv)
 
     char input[512] = "";
 
+    int fontSize = 48;
+    int maxWidth = 1920 - 40;
+
     // Initialize audio to stop loading screen music from playing
     SDL_AudioSpec want{}, have{};
     want.freq = 48000;
@@ -79,7 +82,7 @@ int main(int argc, char **argv)
 
     SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
 
-    AddChatLine("-chat-");
+    AddChatLine(tvRenderer, "-chat-", fontSize, textColor, maxWidth);
 
     // Button Texture
     SDL_Texture* buttonTexture = IMG_LoadTexture(drcRenderer, "romfs:/res/largebutton.png");
@@ -141,6 +144,13 @@ int main(int argc, char **argv)
 
         while (SDL_PollEvent(&event)) {
             handle_event(event);
+
+            static bool lastDarkMode = false;
+
+            if (darkMode != lastDarkMode) {
+                RebuildChatTextures(tvRenderer, fontSize, textColor, maxWidth);
+                lastDarkMode = darkMode;
+            }
 
             if (event.type == SDL_MOUSEBUTTONDOWN &&
                 event.button.button == SDL_BUTTON_LEFT) {
@@ -217,7 +227,7 @@ int main(int argc, char **argv)
         }
 
         // Handle incoming messages
-        TryReceive(&sock);
+        TryReceive(&sock, tvRenderer, fontSize, textColor, maxWidth);
 
         // Render TV Screen
         if (tvRenderer) {
@@ -246,7 +256,7 @@ int main(int argc, char **argv)
                 else DrawText(tvRenderer, "Password: (hidden)", 450, 464, 64, {0, 0, 0, 120});
             }
             else if (scene == "chat") {
-                DrawChatBuffer(tvRenderer, 0, 40, 40, textColor);
+                DrawChatBuffer(tvRenderer, 40, 40);
             }
             SDL_RenderPresent(tvRenderer);
         }

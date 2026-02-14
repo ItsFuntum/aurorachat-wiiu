@@ -25,7 +25,7 @@
 int ConnectToTCPServer();
 int ConnectToHTTPServer();
 
-void TryReceive(int* sock);
+void TryReceive(int *sock, SDL_Renderer* renderer, int fontSize, SDL_Color textColor, int maxWidth);
 bool send_api_request(const std::string& jsonBody);
 
 std::string json_escape(const char* input);

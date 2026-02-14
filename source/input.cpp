@@ -1,4 +1,5 @@
 #include "input.h"
+#include "chat.h"
 
 std::string scene = "selection_menu";
 std::string textSendType = "";
