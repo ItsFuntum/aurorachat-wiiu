@@ -107,6 +107,12 @@ int main(int argc, char **argv)
     button_right_bottom.x = 854 - button_right_bottom.w;
     button_right_bottom.y = 480 - button_right_bottom.h;
 
+    SDL_Rect button_left_bottom = { 854, 480, 0, 0 };
+    button_left_bottom.w = bw;
+    button_left_bottom.h = bh;
+    button_left_bottom.x = 0;
+    button_left_bottom.y = 480 - button_left_bottom.h;
+
     Uint32 lastTicks = 0;
     const int AXIS_DEADZONE = 8000;  // deadzone for joystick
     const float MAX_SPEED = 1000.0f;  // pixels per second when stick is fully pushed
@@ -212,6 +218,18 @@ int main(int argc, char **argv)
                         SDL_StartTextInput();
                     }
                 }
+                else if (PointInRect(mx, my, button_left_bottom)) {
+                    if (scene == "sign_up" || scene == "sign_in" || scene == "invalid_credentials" || scene == "chat") {
+                        if (scene == "chat") {
+                            username = "";
+                            password = "";
+                        }
+
+                        scene = "selection_menu";
+                    }
+                    else if (scene == "sign_up_confirm") scene = "sign_up";
+                    else if (scene == "sign_in_confirm") scene = "sign_in";
+                }
             }
 
             if (event.type == SDL_TEXTINPUT)
@@ -283,6 +301,11 @@ int main(int argc, char **argv)
         if (drcRenderer) {
             SDL_SetRenderDrawColor(drcRenderer, themeColor.r, themeColor.g, themeColor.b, themeColor.a);
             SDL_RenderClear(drcRenderer);
+
+            if (scene != "selection_menu") {
+                if (scene == "chat") DrawButtonWithText(drcRenderer, buttonTexture, button_left_bottom, "Log Out", 48);
+                else DrawButtonWithText(drcRenderer, buttonTexture, button_left_bottom, "Back", 48);
+            }
 
             if (scene == "selection_menu") {
                 DrawButtonWithText(drcRenderer, buttonTexture, button_middle_top, "Sign Up", 48);
