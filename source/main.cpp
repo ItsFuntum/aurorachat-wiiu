@@ -255,24 +255,24 @@ int main(int argc, char **argv)
             }
             else if (scene == "sign_up") {
                 DrawText(tvRenderer, "Sign Up", 850, 300, 64, textColor);
-                DrawText(tvRenderer, "Enter a username and password.", 450, 400, 64, {0, 0, 0, 120});
+                DrawText(tvRenderer, "Enter a username and password.", 450, 400, 64, textColor_lowOpacity);
             }
             else if (scene == "sign_in") {
                 DrawText(tvRenderer, "Sign In", 850, 300, 64, textColor);
-                DrawText(tvRenderer, "Enter a username and password.", 450, 400, 64, {0, 0, 0, 120});
+                DrawText(tvRenderer, "Enter a username and password.", 450, 400, 64, textColor_lowOpacity);
             }
             else if (scene == "sign_up_confirm" || scene == "sign_in_confirm") {
                 DrawText(tvRenderer, "Confirm", 850, 300, 64, textColor);
-                DrawText(tvRenderer, ("Username: " + username).c_str(), 450, 400, 64, {0, 0, 0, 120});
-                if (showpassword) DrawText(tvRenderer, ("Password: " + password).c_str(), 450, 464, 64, {0, 0, 0, 120});
-                else DrawText(tvRenderer, "Password: (hidden)", 450, 464, 64, {0, 0, 0, 120});
+                DrawText(tvRenderer, ("Username: " + username).c_str(), 450, 400, 64, textColor_lowOpacity);
+                if (showpassword) DrawText(tvRenderer, ("Password: " + password).c_str(), 450, 464, 64, textColor_lowOpacity);
+                else DrawText(tvRenderer, "Password: (hidden)", 450, 464, 64, textColor_lowOpacity);
             }
             else if (scene == "chat") {
                 DrawChatBuffer(tvRenderer, 40, 40);
             }
             else if (scene == "invalid_credentials") {
                 DrawText(tvRenderer, "Invalid Credentials", 650, 300, 64, textColor);
-                DrawText(tvRenderer, "Press B to go back to the account screen.", 250, 400, 64, {0, 0, 0, 120});
+                DrawText(tvRenderer, "Press B to go back to the account screen.", 250, 400, 64, textColor_lowOpacity);
             }
             SDL_RenderPresent(tvRenderer);
         }

@@ -5,6 +5,7 @@ std::string scene = "selection_menu";
 std::string textSendType = "";
 
 SDL_Color textColor = {0, 0, 0, 255};
+SDL_Color textColor_lowOpacity = {0, 0, 0, 120};
 SDL_Color themeColor = {255, 255, 255, 255};
 
 bool darkMode = false;
@@ -16,6 +17,7 @@ void handle_button_down(const SDL_ControllerButtonEvent& e)
             darkMode = !darkMode;
             
             textColor = darkMode ? SDL_Color{255,255,255,255} : SDL_Color{0,0,0,255};
+            textColor_lowOpacity = darkMode ? SDL_Color{255,255,255,120} : SDL_Color{0,0,0,120};
             themeColor = darkMode ? SDL_Color{0,0,0,255} : SDL_Color{255,255,255,255};
         }
 
