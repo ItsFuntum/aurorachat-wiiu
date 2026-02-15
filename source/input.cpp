@@ -26,6 +26,11 @@ void handle_button_down(const SDL_ControllerButtonEvent& e)
                 SDL_StartTextInput();
             }
         }
+        else if (scene == "invalid_credentials") {
+            if (e.button == SDL_CONTROLLER_BUTTON_B) {
+                scene = "selection_menu";
+            }
+        }
     }
 }
 

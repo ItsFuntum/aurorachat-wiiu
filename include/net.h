@@ -26,10 +26,10 @@ int ConnectToTCPServer();
 int ConnectToHTTPServer();
 
 void TryReceive(int *sock, SDL_Renderer* renderer, int fontSize, SDL_Color textColor, int maxWidth);
-bool send_api_request(const std::string& jsonBody);
+std::string send_api_request(const std::string& jsonBody);
 
 std::string json_escape(const char* input);
 
-bool make_account(const char* username, const char* password);
-bool login_account(const char* username, const char* password);
-bool send_chat(const char* username, const char* password, const char* message);
+std::string make_account(const char* username, const char* password);
+std::string login_account(const char* username, const char* password);
+std::string send_chat(const char* username, const char* password, const char* message);

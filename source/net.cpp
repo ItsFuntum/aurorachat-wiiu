@@ -82,10 +82,10 @@ void TryReceive(int *sock, SDL_Renderer* renderer, int fontSize, SDL_Color textC
     }
 }
 
-bool send_api_request(const std::string& jsonBody)
+std::string send_api_request(const std::string& jsonBody)
 {
     int sock = ConnectToHTTPServer();
-    if (sock < 0) return false;
+    if (sock < 0) return "";
 
     int bodyLen = jsonBody.length();
 
@@ -102,25 +102,29 @@ bool send_api_request(const std::string& jsonBody)
         jsonBody.c_str()
     );
 
-    // ---- Send (handle partial send properly) ----
+    // ---- Send ----
     int totalSent = 0;
     while (totalSent < reqLen) {
         int sent = send(sock, request + totalSent, reqLen - totalSent, 0);
         if (sent <= 0) {
             close(sock);
-            return false;
+            return "";
         }
         totalSent += sent;
     }
 
-    // ---- Read full response ----
+    // ---- Read response ----
+    std::string response;
     char buffer[1024];
-    while (recv(sock, buffer, sizeof(buffer), 0) > 0) {
-        // Optional: store response if needed
+
+    int r;
+    while ((r = recv(sock, buffer, sizeof(buffer) - 1, 0)) > 0) {
+        buffer[r] = '\0';
+        response += buffer;
     }
 
     close(sock);
-    return true;
+    return response;
 }
 
 std::string json_escape(const char* input)
@@ -139,7 +143,7 @@ std::string json_escape(const char* input)
     return out;
 }
 
-bool make_account(const char* username, const char* password)
+std::string make_account(const char* username, const char* password)
 {
     std::string body =
         "{\"cmd\":\"MAKEACC\",\"username\":\"" +
@@ -151,7 +155,7 @@ bool make_account(const char* username, const char* password)
     return send_api_request(body);
 }
 
-bool login_account(const char* username, const char* password)
+std::string login_account(const char* username, const char* password)
 {
     std::string body =
         "{\"cmd\":\"LOGINACC\",\"username\":\"" +
@@ -163,7 +167,7 @@ bool login_account(const char* username, const char* password)
     return send_api_request(body);
 }
 
-bool send_chat(const char* username, const char* password, const char* message)
+std::string send_chat(const char* username, const char* password, const char* message)
 {
     std::string body =
         "{\"cmd\":\"CHAT\",\"content\":\"" +

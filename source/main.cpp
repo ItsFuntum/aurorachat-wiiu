@@ -171,8 +171,20 @@ int main(int argc, char **argv)
                         scene = "selection_menu";
                     }
                     else if (scene == "sign_in_confirm") {
-                        login_account(username.c_str(), password.c_str());
-                        scene = "chat";
+                        std::string reply = login_account(username.c_str(), password.c_str());
+
+                        if (reply.find("\"data\":\"LOGIN_OK\"") != std::string::npos) {
+                            scene = "chat";
+
+                            std::string welcome = "Welcome to aurorachat, " + username + "!";
+                            AddChatLine(tvRenderer, welcome.c_str(), fontSize, textColor, maxWidth);
+                        }
+                        else if (reply.find("\"data\":\"LOGIN_WRONG_PASS\"") != std::string::npos || reply.find("\"data\":\"LOGIN_FAKE_ACC\"") != std::string::npos) {
+                            scene = "invalid_credentials";
+                        }
+                        else {
+                            scene = "selection_menu"; // Fallback
+                        }
                     }
                 }
                 else if (PointInRect(mx, my, button_middle_bottom)) {
@@ -257,6 +269,10 @@ int main(int argc, char **argv)
             }
             else if (scene == "chat") {
                 DrawChatBuffer(tvRenderer, 40, 40);
+            }
+            else if (scene == "invalid_credentials") {
+                DrawText(tvRenderer, "Invalid Credentials", 650, 300, 64, textColor);
+                DrawText(tvRenderer, "Press B to go back to the account screen.", 250, 400, 64, {0, 0, 0, 120});
             }
             SDL_RenderPresent(tvRenderer);
         }
