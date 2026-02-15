@@ -66,7 +66,7 @@ int main(int argc, char **argv)
         1280, 720,  // Use 720p resolution
         SDL_WINDOW_FULLSCREEN | SDL_WINDOW_WIIU_TV_ONLY);
     if (tvWindow) {
-        tvRenderer = SDL_CreateRenderer(tvWindow, 0,  // Use first display driver
+        tvRenderer = SDL_CreateRenderer(tvWindow, -1,
             SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     }
 
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
         854, 480,  // Native GamePad resolution
         SDL_WINDOW_WIIU_GAMEPAD_ONLY | SDL_WINDOW_WIIU_PREVENT_SWAP);
     if (drcWindow) {
-        drcRenderer = SDL_CreateRenderer(drcWindow, 1,  // Use second display driver
+        drcRenderer = SDL_CreateRenderer(drcWindow, -1,
             SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     }
 
