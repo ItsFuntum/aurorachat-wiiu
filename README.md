@@ -7,14 +7,42 @@ The goal with this project is to allow Wii U users to chat on aurorachat. We als
 
 # Building
 
-Before building make sure you have the following dependencies installed:
-- wut
-- SDL2
-- SDL2_ttf
-- SDL2_image
-- libromfs-wiiu
+1. Make sure you have devkitpro set up (https://devkitpro.org/wiki/Getting_Started)
 
-Once the environment is setup:
+2. Install the required dependencies.
+
+```
+sudo pacman -S wut wut-tools ppc-pkg-config wiiu-pkg-config devkitPPC wiiu-sdl2 wiiu-sdl2_ttf wiiu-sdl2_image ppc-freetype ppc-harfbuzz ppc-libpng ppc-zlib bzip2 ppc-brotli
+```
+or
+```
+sudo dkp-pacman -S wut wut-tools ppc-pkg-config wiiu-pkg-config devkitPPC wiiu-sdl2 wiiu-sdl2_ttf wiiu-sdl2_image ppc-freetype ppc-harfbuzz ppc-libpng ppc-zlib bzip2 ppc-brotli
+```
+
+3. You will also need to install and download libromfs-wiiu from the GitHub and even though you installed SDL2 from pacman, it may be out of date.
+```
+git clone https://github.com/yawut/libromfs-wiiu.git
+cd libromfs-wiiu
+make
+sudo -E make install
+cd ..
+
+git clone https://github.com/devkitPro/SDL.git
+cd SDL
+git checkout wiiu-sdl2-2.28
+/opt/devkitpro/portlibs/wiiu/bin/powerpc-eabi-cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$DEVKITPRO/portlibs/wiiu
+cmake --build build
+sudo cmake --install build
+cd ..
+```
+
+If you got no errors you can safely remove the folders
+```
+rm -rf libromfs-wiiu
+rm -rf SDL
+```
+
+4. Once the environment is setup:
 ```
 git clone https://github.com/ItsFuntum/aurorachat-wiiu.git
 cd aurorachat-wiiu
