@@ -331,6 +331,7 @@ int main(int argc, char **argv)
     FreeFonts();
     TTF_Quit();
     romfsExit();
+    SDL_CloseAudio();
     SDL_Quit();
     WHBProcShutdown();
     return 0;
