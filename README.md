@@ -12,7 +12,7 @@ The goal with this project is to allow Wii U users to chat on aurorachat. We als
 
 Before building make sure you have the following dependencies installed:
 - wut
-- [dkosmari's SDL fork](https://github.com/dkosmari/SDL/tree/wiiu-swkb)
+- SDL
 - SDL2_ttf
 - SDL2_image
 - libromfs-wiiu
