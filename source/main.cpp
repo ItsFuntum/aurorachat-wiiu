@@ -109,7 +109,7 @@ int main(int argc, char **argv)
 
     Uint32 lastTicks = 0;
     const int AXIS_DEADZONE = 8000;  // deadzone for joystick
-    const float MAX_SPEED = 300.0f;  // pixels per second when stick is fully pushed
+    const float MAX_SPEED = 1000.0f;  // pixels per second when stick is fully pushed
 
     SDL_Event event;
     SDL_GameController* gController = nullptr;
