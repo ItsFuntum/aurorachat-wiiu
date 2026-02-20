@@ -13,6 +13,26 @@
 #include "net.h"
 #include "input.h"
 #include "button.h"
+#include "theme.h"
+
+SDL_Window *tvWindow = NULL;
+SDL_Window *drcWindow = NULL;
+SDL_Renderer *tvRenderer = NULL;
+SDL_Renderer *drcRenderer = NULL;
+
+int fontSize = 48;
+int maxWidth = 1920 - 40;
+
+// TV colors
+SDL_Color tvBackgroundColor;
+SDL_Color tvTextColor;
+
+// DRC colors
+SDL_Color drcBackgroundColor;
+SDL_Color drcTextColor;
+
+// Logo
+SDL_Color logoColor;
 
 // -----------------------
 // Main
@@ -37,9 +57,6 @@ int main(int argc, char **argv)
 
     char input[512] = "";
 
-    int fontSize = 48;
-    int maxWidth = 1920 - 40;
-
     // Initialize audio to stop loading screen music from playing
     SDL_AudioSpec want{}, have{};
     want.freq = 48000;
@@ -50,12 +67,6 @@ int main(int argc, char **argv)
 
     SDL_OpenAudio(&want, &have);
     SDL_PauseAudio(0);
-    
-    // Initialize Wii U video subsystem
-    SDL_Window *tvWindow = NULL;
-    SDL_Window *drcWindow = NULL;
-    SDL_Renderer *tvRenderer = NULL;
-    SDL_Renderer *drcRenderer = NULL;
 
     // Set vsync hint before creating windows
     SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
@@ -82,7 +93,9 @@ int main(int argc, char **argv)
 
     SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
 
-    AddChatLine(tvRenderer, "-chat-", fontSize, textColor, maxWidth);
+    ApplyTheme(0);
+
+    AddChatLine(tvRenderer, "-chat-", fontSize, tvTextColor, maxWidth);
 
     // Button Texture
     SDL_Texture* buttonTexture = IMG_LoadTexture(drcRenderer, "romfs:/res/largebutton.png");
@@ -153,13 +166,6 @@ int main(int argc, char **argv)
         while (SDL_PollEvent(&event)) {
             handle_event(event);
 
-            static bool lastDarkMode = false;
-
-            if (darkMode != lastDarkMode) {
-                RebuildChatTextures(tvRenderer, fontSize, textColor, maxWidth);
-                lastDarkMode = darkMode;
-            }
-
             if (event.type == SDL_MOUSEBUTTONDOWN &&
                 event.button.button == SDL_BUTTON_LEFT) {
 
@@ -185,7 +191,7 @@ int main(int argc, char **argv)
                             scene = "chat";
 
                             std::string welcome = "Welcome to aurorachat, " + username + "!";
-                            AddChatLine(tvRenderer, welcome.c_str(), fontSize, textColor, maxWidth);
+                            AddChatLine(tvRenderer, welcome.c_str(), fontSize, tvTextColor, maxWidth);
                         }
                         else if (reply.find("\"data\":\"LOGIN_WRONG_PASS\"") != std::string::npos || reply.find("\"data\":\"LOGIN_FAKE_ACC\"") != std::string::npos) {
                             scene = "invalid_credentials";
@@ -259,47 +265,47 @@ int main(int argc, char **argv)
         }
 
         // Handle incoming messages
-        TryReceive(&sock, tvRenderer, fontSize, textColor, maxWidth);
+        TryReceive(&sock, tvRenderer, fontSize, tvTextColor, maxWidth);
 
         // Render TV Screen
         if (tvRenderer) {
-            SDL_SetRenderDrawColor(tvRenderer, themeColor.r, themeColor.g, themeColor.b, themeColor.a);
+            SDL_SetRenderDrawColor(tvRenderer, tvBackgroundColor.r, tvBackgroundColor.g, tvBackgroundColor.b, tvBackgroundColor.a);
             SDL_RenderClear(tvRenderer);
 
-            DrawText(tvRenderer, "Aurorachat", 1500, 20, 64, { 0, 0, 100, 200 });
-            DrawText(tvRenderer, "for Wii U", 1580, 75, 64, { 0, 0, 100, 200 });
-            DrawText(tvRenderer, "version 5.1", 1610, 133, 48, { 0, 0, 100, 200 });
+            DrawText(tvRenderer, "Aurorachat", 1500, 20, 64, logoColor);
+            DrawText(tvRenderer, "for Wii U", 1580, 75, 64, logoColor);
+            DrawText(tvRenderer, "version 5.1", 1610, 133, 48, logoColor);
 
             if (scene == "selection_menu") {
-                DrawText(tvRenderer, "Sign Up or Sign In", 600, 300, 64, textColor);
+                DrawText(tvRenderer, "Sign Up or Sign In", 600, 300, 64, tvTextColor);
             }
             else if (scene == "sign_up") {
-                DrawText(tvRenderer, "Sign Up", 850, 300, 64, textColor);
-                DrawText(tvRenderer, "Enter a username and password.", 450, 400, 64, textColor_lowOpacity);
+                DrawText(tvRenderer, "Sign Up", 850, 300, 64, tvTextColor);
+                DrawText(tvRenderer, "Enter a username and password.", 450, 400, 64, tvTextColor);
             }
             else if (scene == "sign_in") {
-                DrawText(tvRenderer, "Sign In", 850, 300, 64, textColor);
-                DrawText(tvRenderer, "Enter a username and password.", 450, 400, 64, textColor_lowOpacity);
+                DrawText(tvRenderer, "Sign In", 850, 300, 64, tvTextColor);
+                DrawText(tvRenderer, "Enter a username and password.", 450, 400, 64, tvTextColor);
             }
             else if (scene == "sign_up_confirm" || scene == "sign_in_confirm") {
-                DrawText(tvRenderer, "Confirm", 850, 300, 64, textColor);
-                DrawText(tvRenderer, ("Username: " + username).c_str(), 450, 400, 64, textColor_lowOpacity);
-                if (showpassword) DrawText(tvRenderer, ("Password: " + password).c_str(), 450, 464, 64, textColor_lowOpacity);
-                else DrawText(tvRenderer, "Password: (hidden)", 450, 464, 64, textColor_lowOpacity);
+                DrawText(tvRenderer, "Confirm", 850, 300, 64, tvTextColor);
+                DrawText(tvRenderer, ("Username: " + username).c_str(), 450, 400, 64, tvTextColor);
+                if (showpassword) DrawText(tvRenderer, ("Password: " + password).c_str(), 450, 464, 64, tvTextColor);
+                else DrawText(tvRenderer, "Password: (hidden)", 450, 464, 64, tvTextColor);
             }
             else if (scene == "chat") {
                 DrawChatBuffer(tvRenderer, 40, 40);
             }
             else if (scene == "invalid_credentials") {
-                DrawText(tvRenderer, "Invalid Credentials", 650, 300, 64, textColor);
-                DrawText(tvRenderer, "Press B to go back to the account screen.", 250, 400, 64, textColor_lowOpacity);
+                DrawText(tvRenderer, "Invalid Credentials", 650, 300, 64, tvTextColor);
+                DrawText(tvRenderer, "Press B to go back to the account screen.", 250, 400, 64, tvTextColor);
             }
             SDL_RenderPresent(tvRenderer);
         }
 
         // Render DRC (GamePad) Screen
         if (drcRenderer) {
-            SDL_SetRenderDrawColor(drcRenderer, themeColor.r, themeColor.g, themeColor.b, themeColor.a);
+            SDL_SetRenderDrawColor(drcRenderer, drcBackgroundColor.r, drcBackgroundColor.g, drcBackgroundColor.b, drcBackgroundColor.a);
             SDL_RenderClear(drcRenderer);
 
             if (scene != "selection_menu") {
@@ -325,9 +331,13 @@ int main(int argc, char **argv)
                 DrawButtonWithText(drcRenderer, buttonTexture, button_middle_bottom, "Show Password", 48);
             }
             else if (scene == "chat") {
-                DrawText(drcRenderer, "Ⓐ: Send Message", 20, 20, 48, textColor);
-                DrawText(drcRenderer, "↑/↓: Scroll Chat", 20, 70, 48, textColor);
-                DrawText(drcRenderer, "X: Toggle Theme", 20, 120, 48, textColor);
+                DrawText(drcRenderer, "Ⓐ: Send Message", 20, 0, 48, drcTextColor);
+                DrawText(drcRenderer, "↑/↓: Scroll Chat", 20, 50, 48, drcTextColor);
+                DrawText(drcRenderer, "Ⓨ: View Rules", 20, 100, 48, drcTextColor);
+                DrawText(drcRenderer, "L/R: Toggle Theme", 20, 150, 48, drcTextColor);
+                DrawText(drcRenderer, "X: Reverse Theme", 20, 200, 48, drcTextColor);
+                DrawText(drcRenderer, "Current Theme:", 20, 260, 48, drcTextColor);
+                DrawText(drcRenderer, themes[currentTheme].name, 20, 310, 48, drcTextColor);
 
                 DrawButtonWithText(drcRenderer, buttonTexture, button_right_bottom, "Send", 48);
             }

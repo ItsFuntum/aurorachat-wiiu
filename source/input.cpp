@@ -1,26 +1,13 @@
 #include "input.h"
 #include "chat.h"
+#include "theme.h"
 
 std::string scene = "selection_menu";
 std::string textSendType = "";
 
-SDL_Color textColor = {0, 0, 0, 255};
-SDL_Color textColor_lowOpacity = {0, 0, 0, 120};
-SDL_Color themeColor = {255, 255, 255, 255};
-
-bool darkMode = false;
-
 void handle_button_down(const SDL_ControllerButtonEvent& e)
 {
     if (textSendType.empty()) {
-        if (e.button == SDL_CONTROLLER_BUTTON_X) {
-            darkMode = !darkMode;
-            
-            textColor = darkMode ? SDL_Color{255,255,255,255} : SDL_Color{0,0,0,255};
-            textColor_lowOpacity = darkMode ? SDL_Color{255,255,255,120} : SDL_Color{0,0,0,120};
-            themeColor = darkMode ? SDL_Color{0,0,0,255} : SDL_Color{255,255,255,255};
-        }
-
         if (scene == "chat") {
             if (e.button == SDL_CONTROLLER_BUTTON_A) {
                 textSendType = "message";
@@ -32,6 +19,31 @@ void handle_button_down(const SDL_ControllerButtonEvent& e)
             if (e.button == SDL_CONTROLLER_BUTTON_B) {
                 scene = "selection_menu";
             }
+        }
+
+        if (e.button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER) {
+            currentTheme--;
+            if (currentTheme < 0) currentTheme = THEME_COUNT - 1;
+            ApplyTheme(currentTheme);
+        }
+        else if (e.button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER) {
+            currentTheme++;
+            if (currentTheme >= THEME_COUNT) currentTheme = 0;
+            ApplyTheme(currentTheme);
+        }
+        else if (e.button == SDL_CONTROLLER_BUTTON_X) {
+            // Swap TV and DRC colors
+            SDL_Color tempBg = tvBackgroundColor;
+            SDL_Color tempText = tvTextColor;
+
+            tvBackgroundColor = drcBackgroundColor;
+            tvTextColor = drcTextColor;
+
+            drcBackgroundColor = tempBg;
+            drcTextColor = tempText;
+
+            if (tvRenderer)
+                RebuildChatTextures(tvRenderer, fontSize, tvTextColor, maxWidth);
         }
     }
 }

@@ -6,12 +6,6 @@
 extern std::string scene;
 extern std::string textSendType;
 
-extern SDL_Color textColor;
-extern SDL_Color textColor_lowOpacity;
-extern SDL_Color themeColor;
-
-extern bool darkMode;
-
 void handle_event(const SDL_Event& event);
 void handle_button_down(const SDL_ControllerButtonEvent& e);
 

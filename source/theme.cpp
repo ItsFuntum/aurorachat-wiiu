@@ -1,0 +1,188 @@
+#include "theme.h"
+#include "chat.h"   // for RebuildChatTextures
+
+Theme themes[] = {
+    {
+        {0, 0, 0, 200},         // TV Text
+        {255, 255, 255, 255},   // TV Background
+
+        {0, 0, 0, 200},         // DRC Text
+        {255, 255, 255, 255},   // DRC Background
+
+        {0, 0, 100, 200},       // Logo Color
+
+        "Basic Light"           // Theme Name
+    },
+
+    {
+        {255, 255, 255, 200},
+        {0, 0, 0, 255},
+
+        {255, 255, 255, 200},
+        {0, 0, 0, 255},
+
+        {0, 0, 100, 200},
+
+        "Basic Dark"
+    },
+
+    {
+        {0, 0, 0, 200},
+        {0, 0, 255, 255},
+
+        {0, 0, 0, 200},
+        {0, 0, 255, 255},
+
+        {0, 0, 0, 255},
+
+        "HBChat Legacy"
+    },
+
+    {
+        {106, 142, 174, 200},
+        {209, 250, 255, 255},
+
+        {106, 142, 174, 200},
+        {209, 250, 255, 255},
+
+        {54, 38, 167, 200},
+
+        "Glacier Plus"
+    },
+
+    {
+        {157, 99, 129, 200},
+        {28, 2, 33, 255},
+
+        {157, 99, 129, 200},
+        {28, 2, 33, 255},
+
+        {255, 234, 238, 200},
+
+        "Velvet Plus"
+    },
+
+    {
+        {199, 255, 237, 200},
+        {89, 101, 111, 255},
+
+        {199, 255, 237, 200},
+        {89, 101, 111, 255},
+
+        {255, 159, 28, 200},
+
+        "Slate Plus"
+    },
+
+    {
+        {255, 56, 100, 200},
+        {245, 215, 217, 255},
+
+        {255, 56, 100, 200},
+        {245, 215, 217, 255},
+
+        {72, 172, 240, 200},
+
+        "Pearl Plus"
+    },
+
+    {
+        {189, 228, 168, 200},
+        {15, 82, 87, 255},
+
+        {189, 228, 168, 200},
+        {15, 82, 87, 255},
+
+        {234, 53, 70, 200},
+
+        "Emerald Plus"
+    },
+
+    {
+        {230, 57, 70, 200},
+        {254, 240, 204, 255},
+
+        {16, 255, 203, 200},
+        {40, 196, 200, 255},
+
+        {253, 26, 109, 200},
+
+        "Lemon Soda"
+    },
+
+    {
+        {235, 212, 203, 200},
+        {182, 70, 95, 255},
+
+        {218, 159, 147, 200},
+        {137, 6, 32, 255},
+
+        {44, 7, 3, 200},
+
+        "Cinnamon"
+    },
+
+    {
+        {255, 217, 125, 200},
+        {255, 108, 74, 255},
+
+        {170, 246, 131, 200},
+        {59, 201, 123, 255},
+
+        {255, 255, 255, 200},
+
+        "Tropical"
+    },
+
+    {
+        {19, 64, 116, 200},
+        {238, 244, 237, 255},
+
+        {141, 169, 196, 200},
+        {11, 37, 69, 255},
+
+        {19, 49, 92, 200},
+
+        "Iceberg"
+    },
+
+    {
+        {0, 255, 255, 200},
+        {255, 0, 0, 255},
+
+        {255, 0, 255, 200},
+        {0, 255, 0, 255},
+
+        {0, 0, 0, 200},
+
+        "Eyestrain Deluxe"
+    }
+};
+
+int currentTheme = 0;
+
+const int THEME_COUNT = sizeof(themes) / sizeof(Theme);
+
+void ApplyTheme(int index)
+{
+    if (index < 0 || index >= THEME_COUNT) return;
+
+    Theme& t = themes[index];
+
+    // TV
+    tvBackgroundColor = t.tvBackground;
+    tvTextColor = t.tvText;
+
+    // DRC
+    drcBackgroundColor = t.drcBackground;
+    drcTextColor = t.drcText;
+
+    // Logo
+    logoColor = t.logoColor;
+
+    currentTheme = index;
+
+    // Rebuild chat using TV text color
+    if (tvRenderer)
+        RebuildChatTextures(tvRenderer, fontSize, tvTextColor, maxWidth);
+}
