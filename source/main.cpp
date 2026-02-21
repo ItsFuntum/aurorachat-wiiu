@@ -53,6 +53,7 @@ int main(int argc, char **argv)
 
     bool showpassword = false;
 
+    connect_to_api();
     int sock = ConnectToTCPServer();
 
     char input[512] = "";

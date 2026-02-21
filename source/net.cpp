@@ -143,6 +143,12 @@ std::string json_escape(const char* input)
     return out;
 }
 
+std::string connect_to_api()
+{
+    std::string body = "{\"cmd\":\"CONNECT\",\"version\":\"5.1\"}";
+    return send_api_request(body);
+}
+
 std::string make_account(const char* username, const char* password)
 {
     std::string body =
