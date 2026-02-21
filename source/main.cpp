@@ -169,19 +169,27 @@ int main(int argc, char **argv)
     lastTicks = SDL_GetTicks();
     while (WHBProcIsRunning()) {
         if (scene == "chat") {
-            // Continuous axis polling to move chatPosY while held
             Uint32 now = SDL_GetTicks();
             float deltaSec = (now - lastTicks) / 1000.0f;
             lastTicks = now;
+
             if (gController) {
+                // ANALOG STICK
                 Sint16 axisY = SDL_GameControllerGetAxis(gController, SDL_CONTROLLER_AXIS_LEFTY);
-        
+
                 if (axisY > AXIS_DEADZONE || axisY < -AXIS_DEADZONE) {
-                    // Normalize axis value to -1.0 .. 1.0
-                    float norm = axisY / 32767.0f;  // note: axisY is signed
-                    // Multiply by speed and frame delta to get pixel movement
+                    float norm = axisY / 32767.0f;
                     float move = norm * MAX_SPEED * deltaSec;
                     chatPosY -= (int)move;
+                }
+
+                // D-PAD
+                if (SDL_GameControllerGetButton(gController, SDL_CONTROLLER_BUTTON_DPAD_UP)) {
+                    chatPosY += (int)(MAX_SPEED * deltaSec);
+                }
+
+                if (SDL_GameControllerGetButton(gController, SDL_CONTROLLER_BUTTON_DPAD_DOWN)) {
+                    chatPosY -= (int)(MAX_SPEED * deltaSec);
                 }
             }
         }
