@@ -6,6 +6,8 @@
 extern std::string scene;
 extern std::string textSendType;
 
+extern int rulesPage;
+
 void handle_event(const SDL_Event& event);
 void handle_button_down(const SDL_ControllerButtonEvent& e);
 

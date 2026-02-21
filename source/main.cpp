@@ -97,6 +97,20 @@ int main(int argc, char **argv)
 
     AddChatLine(tvRenderer, "-chat-", fontSize, tvTextColor, maxWidth);
 
+    // Discord QR Code Texture
+    SDL_Texture* discordTexture = LoadImage(drcRenderer, "romfs:/res/QRCode_Discord.png");
+
+    int originalW, originalH;
+    SDL_QueryTexture(discordTexture, NULL, NULL, &originalW, &originalH);
+
+    float discordScale = 0.75f;
+
+    SDL_Rect discordRect;
+    discordRect.x = 20;
+    discordRect.y = 300;
+    discordRect.w = originalW * discordScale;
+    discordRect.h = originalH * discordScale;
+
     // Button Texture
     SDL_Texture* buttonTexture = IMG_LoadTexture(drcRenderer, "romfs:/res/largebutton.png");
     int bw, bh;
@@ -229,6 +243,8 @@ int main(int argc, char **argv)
                         if (scene == "chat") {
                             username = "";
                             password = "";
+
+                            rulesPage = 0;
                         }
 
                         scene = "selection_menu";
@@ -308,7 +324,7 @@ int main(int argc, char **argv)
             SDL_SetRenderDrawColor(drcRenderer, drcBackgroundColor.r, drcBackgroundColor.g, drcBackgroundColor.b, drcBackgroundColor.a);
             SDL_RenderClear(drcRenderer);
 
-            if (scene != "selection_menu") {
+            if (scene != "selection_menu" && rulesPage == 0) {
                 if (scene == "chat") DrawButtonWithText(drcRenderer, buttonTexture, button_left_bottom, "Log Out", 48);
                 else DrawButtonWithText(drcRenderer, buttonTexture, button_left_bottom, "Back", 48);
             }
@@ -331,15 +347,68 @@ int main(int argc, char **argv)
                 DrawButtonWithText(drcRenderer, buttonTexture, button_middle_bottom, "Show Password", 48);
             }
             else if (scene == "chat") {
-                DrawText(drcRenderer, "Ⓐ: Send Message", 20, 0, 48, drcTextColor);
-                DrawText(drcRenderer, "↑/↓: Scroll Chat", 20, 50, 48, drcTextColor);
-                DrawText(drcRenderer, "Ⓨ: View Rules", 20, 100, 48, drcTextColor);
-                DrawText(drcRenderer, "L/R: Toggle Theme", 20, 150, 48, drcTextColor);
-                DrawText(drcRenderer, "X: Reverse Theme", 20, 200, 48, drcTextColor);
-                DrawText(drcRenderer, "Current Theme:", 20, 260, 48, drcTextColor);
-                DrawText(drcRenderer, themes[currentTheme].name, 20, 310, 48, drcTextColor);
+                if (rulesPage == 1) {
+                    DrawText(drcRenderer, "Ⓨ: Next Page", 20, 20, 20, drcTextColor);
 
-                DrawButtonWithText(drcRenderer, buttonTexture, button_right_bottom, "Send", 48);
+                    DrawText(drcRenderer, "1. No racist, sexist, homophobic, or other", 20, 60, 20, drcTextColor);
+                    DrawText(drcRenderer, "prejudiced language or behavior, whether it's", 20, 80, 20, drcTextColor);
+                    DrawText(drcRenderer, "aimed at another user or not.", 20, 100, 20, drcTextColor);
+
+                    DrawText(drcRenderer, "2. No asking for or sharing personal info of", 20, 150, 20, drcTextColor);
+                    DrawText(drcRenderer, "yourself or anyone else. This includes name,", 20, 170, 20, drcTextColor);
+                    DrawText(drcRenderer, "age, gender, location, phone number, email", 20, 190, 20, drcTextColor);
+                    DrawText(drcRenderer, "address, or any other personally identifiable", 20, 210, 20, drcTextColor);
+                    DrawText(drcRenderer, "information. Doxxing (or the threat of doing so)", 20, 230, 20, drcTextColor);
+                    DrawText(drcRenderer, "is grounds for a ban.", 20, 250, 20, drcTextColor);
+                }
+                else if (rulesPage == 2) {
+                    DrawText(drcRenderer, "Ⓨ: Next Page", 20, 20, 20, drcTextColor);
+
+                    DrawText(drcRenderer, "3. No overly violent or sexual behavior or", 20, 60, 20, drcTextColor);
+                    DrawText(drcRenderer, "language, including threats of violence or harm", 20, 80, 20, drcTextColor);
+                    DrawText(drcRenderer, "of ANY kind. This includes threats or", 20, 100, 20, drcTextColor);
+                    DrawText(drcRenderer, "discussion of harming yourself.", 20, 120, 20, drcTextColor);
+
+                    DrawText(drcRenderer, "4. No political discussion. Usernames of", 20, 170, 20, drcTextColor);
+                    DrawText(drcRenderer, "political figures are allowed (with some", 20, 190, 20, drcTextColor);
+                    DrawText(drcRenderer, "exceptions), but any language that could incite", 20, 210, 20, drcTextColor);
+                    DrawText(drcRenderer, "arguments may get you banned.", 20, 230, 20, drcTextColor);
+
+                    DrawText(drcRenderer, "5. No impersonation of developers,", 20, 280, 20, drcTextColor);
+                    DrawText(drcRenderer, "moderators, admin, or any other Aurorachat", 20, 300, 20, drcTextColor);
+                    DrawText(drcRenderer, "staff. Additionally, ANY impersonation for the", 20, 320, 20, drcTextColor);
+                    DrawText(drcRenderer, "sake of harrassing another user is not allowed.", 20, 340, 20, drcTextColor);
+                }
+                else if (rulesPage == 3) {
+                    DrawText(drcRenderer, "Ⓨ: Next Page", 20, 20, 20, drcTextColor);
+
+                    DrawText(drcRenderer, "6. No spamming.", 20, 60, 20, drcTextColor);
+                    DrawText(drcRenderer, "7. No hunting.", 20, 80, 20, drcTextColor);
+                    DrawText(drcRenderer, "8. No hackertron", 20, 100, 20, drcTextColor);
+
+                    DrawText(drcRenderer, "Friend code sharing is allowed, but please do", 20, 150, 20, drcTextColor);
+                    DrawText(drcRenderer, "not harrass or pressure other users for their", 20, 170, 20, drcTextColor);
+                    DrawText(drcRenderer, "friend codes.", 20, 190, 20, drcTextColor);
+
+                    DrawText(drcRenderer, "Want access to the rest of Unitendo? Join our", 20, 240, 20, drcTextColor);
+                    DrawText(drcRenderer, "official Discord server here:", 20, 260, 20, drcTextColor);
+                    DrawText(drcRenderer, "discord.gg/dCSgz7KERv", 20, 280, 20, drcTextColor);
+
+                    SDL_RenderCopy(drcRenderer, discordTexture, NULL, &discordRect);
+
+                    DrawText(drcRenderer, "We are not accepting ban appeals at this time.", 20, 460, 20, drcTextColor);
+                }
+                else {
+                    DrawText(drcRenderer, "Ⓐ: Send Message", 20, 0, 48, drcTextColor);
+                    DrawText(drcRenderer, "↑/↓: Scroll Chat", 20, 50, 48, drcTextColor);
+                    DrawText(drcRenderer, "Ⓨ: View Rules", 20, 100, 48, drcTextColor);
+                    DrawText(drcRenderer, "L/R: Toggle Theme", 20, 150, 48, drcTextColor);
+                    DrawText(drcRenderer, "X: Reverse Theme", 20, 200, 48, drcTextColor);
+                    DrawText(drcRenderer, "Current Theme:", 20, 260, 48, drcTextColor);
+                    DrawText(drcRenderer, themes[currentTheme].name, 20, 310, 48, drcTextColor);
+
+                    DrawButtonWithText(drcRenderer, buttonTexture, button_right_bottom, "Send", 48);
+                }
             }
             SDL_RenderPresent(drcRenderer);
         }

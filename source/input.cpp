@@ -5,6 +5,8 @@
 std::string scene = "selection_menu";
 std::string textSendType = "";
 
+int rulesPage = 0;
+
 void handle_button_down(const SDL_ControllerButtonEvent& e)
 {
     if (textSendType.empty()) {
@@ -13,6 +15,14 @@ void handle_button_down(const SDL_ControllerButtonEvent& e)
                 textSendType = "message";
                 SDL_WiiUSetSWKBDHintText("Say something...");
                 SDL_StartTextInput();
+            }
+            else if (e.button == SDL_CONTROLLER_BUTTON_Y) {
+                if (rulesPage < 3) {
+                    rulesPage += 1;
+                }
+                else {
+                    rulesPage = 0;
+                }
             }
         }
         else if (scene == "invalid_credentials") {
