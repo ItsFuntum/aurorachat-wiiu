@@ -7,6 +7,8 @@ std::string textSendType = "";
 
 int rulesPage = 0;
 
+bool isThemeReversed = false;
+
 void handle_button_down(const SDL_ControllerButtonEvent& e)
 {
     if (textSendType.empty()) {
@@ -53,6 +55,8 @@ void handle_button_down(const SDL_ControllerButtonEvent& e)
             ApplyTheme(currentTheme);
         }
         else if (e.button == SDL_CONTROLLER_BUTTON_X) {
+            isThemeReversed = !isThemeReversed;
+
             // Swap TV and DRC colors
             SDL_Color tempBg = tvBackgroundColor;
             SDL_Color tempText = tvTextColor;

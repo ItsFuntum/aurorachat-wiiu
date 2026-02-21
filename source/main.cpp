@@ -488,7 +488,10 @@ int main(int argc, char **argv)
                     DrawText(drcRenderer, "L/R: Toggle Theme", 20, 150, 48, drcTextColor);
                     DrawText(drcRenderer, "X: Reverse Theme", 20, 200, 48, drcTextColor);
                     DrawText(drcRenderer, "Current Theme:", 20, 260, 48, drcTextColor);
-                    DrawText(drcRenderer, themes[currentTheme].name, 20, 310, 48, drcTextColor);
+                    if (isThemeReversed)
+                        DrawText(drcRenderer, (std::string(themes[currentTheme].name) + " (reversed)").c_str(), 20, 310, 48, drcTextColor);
+                    else
+                        DrawText(drcRenderer, themes[currentTheme].name, 20, 310, 48, drcTextColor);
 
                     DrawButtonWithText(drcRenderer, buttonTexture, button_right_bottom, "Send", 48);
                 }

@@ -9,7 +9,9 @@ extern std::string textSendType;
 
 extern int rulesPage;
 
-void handle_event(const SDL_Event& event);
+extern bool isThemeReversed;
+
 void handle_button_down(const SDL_ControllerButtonEvent& e);
+void handle_event(const SDL_Event& event);
 
 bool PointInRect(int x, int y, const SDL_Rect& r);
