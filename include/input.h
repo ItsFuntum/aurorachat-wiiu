@@ -3,6 +3,7 @@
 #include <SDL2/SDL_gamecontroller.h>
 #include <string>
 
+extern std::string username;
 extern std::string scene;
 extern std::string textSendType;
 

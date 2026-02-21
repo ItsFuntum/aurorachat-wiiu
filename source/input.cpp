@@ -25,7 +25,18 @@ void handle_button_down(const SDL_ControllerButtonEvent& e)
                 }
             }
         }
-        else if (scene == "invalid_credentials") {
+        else if (scene == "register_success") {
+            if (e.button == SDL_CONTROLLER_BUTTON_A) {
+                std::string welcome = "Welcome to aurorachat, " + username + "!";
+                AddChatLine(tvRenderer, welcome.c_str(), fontSize, tvTextColor, maxWidth);
+
+                scene = "chat";
+            }
+            else if (e.button == SDL_CONTROLLER_BUTTON_B) {
+                scene = "selection_menu";
+            }
+        }
+        else if (scene == "login_failed" || scene == "register_failed") {
             if (e.button == SDL_CONTROLLER_BUTTON_B) {
                 scene = "selection_menu";
             }

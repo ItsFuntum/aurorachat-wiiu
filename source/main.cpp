@@ -15,6 +15,11 @@
 #include "button.h"
 #include "theme.h"
 
+// Used in multiple files, so declared here
+// -------------------------
+std::string username = "";
+std::string password = "";
+
 SDL_Window *tvWindow = NULL;
 SDL_Window *drcWindow = NULL;
 SDL_Renderer *tvRenderer = NULL;
@@ -33,6 +38,7 @@ SDL_Color drcTextColor;
 
 // Logo
 SDL_Color logoColor;
+// -------------------------
 
 // -----------------------
 // Main
@@ -45,11 +51,11 @@ int main(int argc, char **argv)
     TTF_Init();
     IMG_Init(IMG_INIT_PNG);
 
+    std::string serverResponse = "";
+    std::string failedReason = "";
+
     // Keyboard Text Input Buffer
     std::string textBuffer = "";
-
-    std::string username = "";
-    std::string password = "";
 
     bool showpassword = false;
 
@@ -196,23 +202,71 @@ int main(int argc, char **argv)
                         SDL_StartTextInput();
                     }
                     else if (scene == "sign_up_confirm") {
-                        make_account(username.c_str(), password.c_str());
-                        scene = "selection_menu";
+                        std::string reply = make_account(username.c_str(), password.c_str());
+
+                        if (reply.find("\"data\":\"USR_CREATED\"") != std::string::npos) {
+                            serverResponse.clear();
+                            scene = "register_success";
+                        }
+                        else if (reply.find("\"data\":\"USR_IN_USE\"") != std::string::npos) {
+                            serverResponse.clear();
+                            failedReason = "Username already in use.";
+                            scene = "register_failed";
+                        }
+                        else {
+                            // Extract the "data" value
+                            size_t start = reply.find("\"data\":\"");
+                            size_t end = reply.find("\"", start + 8);
+                            if (start != std::string::npos && end != std::string::npos) {
+                                serverResponse = reply.substr(start + 8, end - (start + 8));
+                            }
+                            else {
+                                serverResponse = "Unable to parse server response.";
+                            }
+
+                            failedReason = "An Unknown Error Occurred.";
+                            scene = "register_failed";
+                        }
                     }
                     else if (scene == "sign_in_confirm") {
                         std::string reply = login_account(username.c_str(), password.c_str());
 
                         if (reply.find("\"data\":\"LOGIN_OK\"") != std::string::npos) {
-                            scene = "chat";
+                            serverResponse.clear();
 
                             std::string welcome = "Welcome to aurorachat, " + username + "!";
                             AddChatLine(tvRenderer, welcome.c_str(), fontSize, tvTextColor, maxWidth);
+
+                            scene = "chat";
                         }
-                        else if (reply.find("\"data\":\"LOGIN_WRONG_PASS\"") != std::string::npos || reply.find("\"data\":\"LOGIN_FAKE_ACC\"") != std::string::npos) {
-                            scene = "invalid_credentials";
+                        else if (reply.find("\"data\":\"LOGIN_FAKE_ACC\"") != std::string::npos) {
+                            serverResponse.clear();
+                            failedReason = "User not found.";
+                            scene = "login_failed";
+                        }
+                        else if (reply.find("\"data\":\"LOGIN_WRONG_PASS\"") != std::string::npos) {
+                            serverResponse.clear();
+                            failedReason = "Incorrect password.";
+                            scene = "login_failed";
+                        }
+                        else if (reply.find("\"data\":\"frick you you're BANNED\"") != std::string::npos) {
+                            serverResponse.clear();
+                            failedReason = "Banned User.";
+                            scene = "login_failed";
                         }
                         else {
-                            scene = "selection_menu"; // Fallback
+                            // Extract the "data" value
+                            size_t start = reply.find("\"data\":\"");
+                            size_t end = reply.find("\"", start + 8);
+                            if (start != std::string::npos && end != std::string::npos) {
+                                serverResponse = reply.substr(start + 8, end - (start + 8));
+                            }
+                            else {
+                                serverResponse = "Unable to parse server response.";
+                            }
+
+                            failedReason = "An Unknown Error Occurred.";
+                            scene = "login_failed";
                         }
                     }
                 }
@@ -240,7 +294,7 @@ int main(int argc, char **argv)
                     }
                 }
                 else if (PointInRect(mx, my, button_left_bottom)) {
-                    if (scene == "sign_up" || scene == "sign_in" || scene == "invalid_credentials" || scene == "chat") {
+                    if (scene == "sign_up" || scene == "sign_in" || scene == "login_failed" || scene == "register_failed" || scene == "register_success" || scene == "chat") {
                         if (scene == "chat") {
                             username = "";
                             password = "";
@@ -313,9 +367,27 @@ int main(int argc, char **argv)
             else if (scene == "chat") {
                 DrawChatBuffer(tvRenderer, 40, 40);
             }
-            else if (scene == "invalid_credentials") {
-                DrawText(tvRenderer, "Invalid Credentials", 650, 300, 64, tvTextColor);
+            else if (scene == "register_success") {
+                DrawText(tvRenderer, "Account created successfully!", 500, 300, 64, tvTextColor);
+                DrawText(tvRenderer, "Press A to go to the chat screen.", 250, 400, 64, tvTextColor);
+                DrawText(tvRenderer, "Press B to go back to the account screen.", 250, 500, 64, tvTextColor);
+
+                if (!serverResponse.empty())
+                    DrawText(tvRenderer, ("Debug: " + serverResponse).c_str(), 0, 1040, 32, tvTextColor);
+            }
+            else if (scene == "register_failed") {
+                DrawText(tvRenderer, "Account already exists.", 650, 300, 64, tvTextColor);
                 DrawText(tvRenderer, "Press B to go back to the account screen.", 250, 400, 64, tvTextColor);
+
+                if (!serverResponse.empty())
+                    DrawText(tvRenderer, ("Debug: " + serverResponse).c_str(), 0, 1040, 32, tvTextColor);
+            }
+            else if (scene == "login_failed") {
+                DrawText(tvRenderer, failedReason.c_str(), 450, 300, 64, tvTextColor);
+                DrawText(tvRenderer, "Press B to go back to the account screen.", 250, 400, 64, tvTextColor);
+
+                if (!serverResponse.empty())
+                    DrawText(tvRenderer, ("Debug: " + serverResponse).c_str(), 0, 1040, 32, tvTextColor);
             }
             SDL_RenderPresent(tvRenderer);
         }

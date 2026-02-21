@@ -145,7 +145,7 @@ std::string json_escape(const char* input)
 
 std::string connect_to_api()
 {
-    std::string body = "{\"cmd\":\"CONNECT\",\"version\":\"5.1\"}";
+    std::string body = "{\"cmd\":\"CONNECT\",\"version\":\"5.1\",\"platform\":\"Wii U\"}";
     return send_api_request(body);
 }
 
@@ -182,7 +182,7 @@ std::string send_chat(const char* username, const char* password, const char* me
         json_escape(username) +
         "\",\"password\":\"" +
         json_escape(password) +
-        "\"}";
+        "\",\"platform\":\"Wii U\"}";
 
     return send_api_request(body);
 }
