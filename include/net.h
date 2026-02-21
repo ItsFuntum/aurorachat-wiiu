@@ -22,6 +22,8 @@
 #define SERVER_PORT_TCP 4040
 #define SERVER_PORT_HTTP 3072
 
+extern std::string clientVersion;
+
 int ConnectToTCPServer();
 int ConnectToHTTPServer();
 

@@ -17,6 +17,8 @@
 
 // Used in multiple files, so declared here
 // -------------------------
+std::string clientVersion = "5.2";
+
 std::string username = "";
 std::string password = "";
 
@@ -345,7 +347,7 @@ int main(int argc, char **argv)
 
             DrawText(tvRenderer, "Aurorachat", 1500, 20, 64, logoColor);
             DrawText(tvRenderer, "for Wii U", 1580, 75, 64, logoColor);
-            DrawText(tvRenderer, "version 5.1", 1610, 133, 48, logoColor);
+            DrawText(tvRenderer, ("version " + clientVersion).c_str(), 1610, 133, 48, logoColor);
 
             if (scene == "selection_menu") {
                 DrawText(tvRenderer, "Sign Up or Sign In", 600, 300, 64, tvTextColor);

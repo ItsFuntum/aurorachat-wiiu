@@ -145,7 +145,9 @@ std::string json_escape(const char* input)
 
 std::string connect_to_api()
 {
-    std::string body = "{\"cmd\":\"CONNECT\",\"version\":\"5.1\",\"platform\":\"Wii U\"}";
+    std::string body = "{\"cmd\":\"CONNECT\",\"version\":\"" +
+    clientVersion +
+    "\",\"platform\":\"Wii U\"}";
     return send_api_request(body);
 }
 
