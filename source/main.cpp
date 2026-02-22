@@ -17,7 +17,7 @@
 
 // Used in multiple files, so declared here
 // -------------------------
-std::string clientVersion = "5.2";
+std::string clientVersion = "5.3";
 
 std::string username = "";
 std::string password = "";
