@@ -1,6 +1,7 @@
 #include "input.h"
 #include "chat.h"
 #include "theme.h"
+#include "net.h"
 
 std::string scene = "selection_menu";
 std::string textSendType = "";
@@ -14,9 +15,14 @@ void handle_button_down(const SDL_ControllerButtonEvent& e)
     if (textSendType.empty()) {
         if (scene == "chat") {
             if (e.button == SDL_CONTROLLER_BUTTON_A) {
-                textSendType = "message";
-                SDL_WiiUSetSWKBDHintText("Say something...");
-                SDL_StartTextInput();
+                if (connectionLost) {
+                    ReconnectToTCPServer();
+                }
+                else {
+                    textSendType = "message";
+                    SDL_WiiUSetSWKBDHintText("Say something...");
+                    SDL_StartTextInput();
+                }
             }
             else if (e.button == SDL_CONTROLLER_BUTTON_Y) {
                 if (rulesPage < 3) {

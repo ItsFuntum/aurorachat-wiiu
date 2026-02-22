@@ -29,6 +29,23 @@ int ConnectToTCPServer()
     return sock;
 }
 
+void ReconnectToTCPServer()
+{
+    AddChatLine(tvRenderer, "[LOG]: Reconnecting...", fontSize, tvTextColor, maxWidth);
+
+    int newSock = ConnectToTCPServer();
+
+    if (newSock >= 0) {
+        sock = newSock;
+        connectionLost = false;
+
+        AddChatLine(tvRenderer, "[LOG]: Successfully reconnected!", fontSize, tvTextColor, maxWidth);
+    }
+    else {
+        AddChatLine(tvRenderer, "[LOG]: Reconnect failed. Please check your internet connection and try again. The server may also be down at the moment. Thank you for your patience.", fontSize, tvTextColor, maxWidth);
+    }
+}
+
 int ConnectToHTTPServer()
 {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -52,31 +69,49 @@ void TryReceive(int *sock, SDL_Renderer* renderer, int fontSize, SDL_Color textC
 {
     if (*sock < 0) return;
 
+    static std::string pending;
     char buf[512];
-    while (true) {
-        ssize_t r = recv(*sock, buf, sizeof(buf) - 1, 0);
-        if (r > 0) {
-            buf[r] = '\0';
-            char *start = buf;
-            for (char *p = buf; *p; ++p) {
-                if (*p == '\n') {
-                    *p = '\0';
-                    AddChatLine(renderer, start, fontSize, textColor, maxWidth);
-                    start = p + 1;
-                }
+
+    while (true)
+    {
+        ssize_t r = recv(*sock, buf, sizeof(buf), 0);
+
+        if (r > 0)
+        {
+            pending.append(buf, r);
+
+            size_t pos;
+            while ((pos = pending.find('\n')) != std::string::npos)
+            {
+                std::string line = pending.substr(0, pos);
+                pending.erase(0, pos + 1);
+
+                AddChatLine(renderer, line.c_str(), fontSize, textColor, maxWidth);
             }
-            if (*start) AddChatLine(renderer, start, fontSize, textColor, maxWidth);
-        } else if (r == 0) {
-            AddChatLine(renderer, "Server disconnected.", fontSize, textColor, maxWidth);
+        }
+        else if (r == 0)
+        {
+            AddChatLine(renderer, "[ERROR]: Disconnected from server. Please reconnect to the server or restart your client.", fontSize, textColor, maxWidth);
+
             close(*sock);
             *sock = -1;
+            pending.clear();
+
+            connectionLost = true;
             break;
-        } else {
+        }
+        else
+        {
             if (errno == EWOULDBLOCK || errno == EAGAIN)
                 break;
-            AddChatLine(renderer, "Failed to connect to aurorachat server.", fontSize, textColor, maxWidth);
+
+            AddChatLine(renderer, "[ERROR]: An error occurred while receiving data. Please reconnect to the server or restart your client.", fontSize, textColor, maxWidth);
+
             close(*sock);
             *sock = -1;
+            pending.clear();
+
+            connectionLost = true;
             break;
         }
     }

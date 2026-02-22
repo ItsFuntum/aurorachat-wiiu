@@ -22,13 +22,17 @@ std::string clientVersion = "5.2";
 std::string username = "";
 std::string password = "";
 
+int fontSize = 48;
+int maxWidth = 1920 - 40;
+
+int sock = ConnectToTCPServer();
+
+bool connectionLost = false;
+
 SDL_Window *tvWindow = NULL;
 SDL_Window *drcWindow = NULL;
 SDL_Renderer *tvRenderer = NULL;
 SDL_Renderer *drcRenderer = NULL;
-
-int fontSize = 48;
-int maxWidth = 1920 - 40;
 
 // TV colors
 SDL_Color tvBackgroundColor;
@@ -62,7 +66,6 @@ int main(int argc, char **argv)
     bool showpassword = false;
 
     connect_to_api();
-    int sock = ConnectToTCPServer();
 
     char input[512] = "";
 
@@ -298,9 +301,13 @@ int main(int argc, char **argv)
                     if (scene == "sign_up") scene = "sign_up_confirm";
                     else if (scene == "sign_in") scene = "sign_in_confirm";
                     else if (scene == "chat") {
-                        textSendType = "message";
-                        SDL_WiiUSetSWKBDHintText("Say something...");
-                        SDL_StartTextInput();
+                        if (connectionLost) {
+                            ReconnectToTCPServer();
+                        } else {
+                            textSendType = "message";
+                            SDL_WiiUSetSWKBDHintText("Say something...");
+                            SDL_StartTextInput();
+                        }
                     }
                 }
                 else if (PointInRect(mx, my, button_left_bottom)) {
@@ -482,7 +489,12 @@ int main(int argc, char **argv)
                     DrawText(drcRenderer, "We are not accepting ban appeals at this time.", 20, 460, 20, drcTextColor);
                 }
                 else {
-                    DrawText(drcRenderer, "Ⓐ: Send Message", 20, 0, 48, drcTextColor);
+                    if (connectionLost) {
+                        DrawText(drcRenderer, "Ⓐ: Reconnect to server", 20, 0, 48, drcTextColor);
+                    }
+                    else {
+                        DrawText(drcRenderer, "Ⓐ: Send Message", 20, 0, 48, drcTextColor);
+                    }
                     DrawText(drcRenderer, "↑/↓: Scroll Chat", 20, 50, 48, drcTextColor);
                     DrawText(drcRenderer, "Ⓨ: View Rules", 20, 100, 48, drcTextColor);
                     DrawText(drcRenderer, "L/R: Toggle Theme", 20, 150, 48, drcTextColor);
@@ -490,10 +502,14 @@ int main(int argc, char **argv)
                     DrawText(drcRenderer, "Current Theme:", 20, 260, 48, drcTextColor);
                     if (isThemeReversed)
                         DrawText(drcRenderer, (std::string(themes[currentTheme].name) + " (reversed)").c_str(), 20, 310, 48, drcTextColor);
-                    else
+                    else {
                         DrawText(drcRenderer, themes[currentTheme].name, 20, 310, 48, drcTextColor);
-
-                    DrawButtonWithText(drcRenderer, buttonTexture, button_right_bottom, "Send", 48);
+                    }
+                    if (connectionLost) {
+                        DrawButtonWithText(drcRenderer, buttonTexture, button_right_bottom, "Reconnect", 48);
+                    } else {
+                        DrawButtonWithText(drcRenderer, buttonTexture, button_right_bottom, "Send", 48);
+                    }
                 }
             }
             SDL_RenderPresent(drcRenderer);

@@ -22,9 +22,19 @@
 #define SERVER_PORT_TCP 4040
 #define SERVER_PORT_HTTP 3072
 
+// These are defined in main.cpp
+extern int sock;
+extern SDL_Renderer* tvRenderer;
+extern int fontSize;
+extern int maxWidth;
+extern SDL_Color tvTextColor;
+
 extern std::string clientVersion;
 
+extern bool connectionLost;
+
 int ConnectToTCPServer();
+void ReconnectToTCPServer();
 int ConnectToHTTPServer();
 
 void TryReceive(int *sock, SDL_Renderer* renderer, int fontSize, SDL_Color textColor, int maxWidth);
