@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 
     SDL_Rect discordRect;
     discordRect.x = 20;
-    discordRect.y = 300;
+    discordRect.y = 305;
     discordRect.w = originalW * discordScale;
     discordRect.h = originalH * discordScale;
 
@@ -470,7 +470,7 @@ int main(int argc, char **argv)
                     DrawText(drcRenderer, "sake of harrassing another user is not allowed.", 20, 340, 20, drcTextColor);
                 }
                 else if (rulesPage == 3) {
-                    DrawText(drcRenderer, "Ⓨ: Next Page", 20, 20, 20, drcTextColor);
+                    DrawText(drcRenderer, "Ⓨ: Close Rules", 20, 20, 20, drcTextColor);
 
                     DrawText(drcRenderer, "6. No spamming.", 20, 60, 20, drcTextColor);
                     DrawText(drcRenderer, "7. No hunting.", 20, 80, 20, drcTextColor);
@@ -486,7 +486,7 @@ int main(int argc, char **argv)
 
                     SDL_RenderCopy(drcRenderer, discordTexture, NULL, &discordRect);
 
-                    DrawText(drcRenderer, "We are not accepting ban appeals at this time.", 20, 460, 20, drcTextColor);
+                    DrawText(drcRenderer, "We are not accepting ban appeals at this time.", 20, 455, 20, drcTextColor);
                 }
                 else {
                     if (connectionLost) {
