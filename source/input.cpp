@@ -14,7 +14,7 @@ void handle_button_down(const SDL_ControllerButtonEvent& e)
 {
     if (textSendType.empty()) {
         if (scene == "chat") {
-            if (e.button == SDL_CONTROLLER_BUTTON_A) {
+            if (e.button == SDL_CONTROLLER_BUTTON_A && rulesPage == 0) {
                 if (connectionLost) {
                     ReconnectToTCPServer();
                 }

@@ -300,7 +300,7 @@ int main(int argc, char **argv)
                 else if (PointInRect(mx, my, button_right_bottom)) {
                     if (scene == "sign_up") scene = "sign_up_confirm";
                     else if (scene == "sign_in") scene = "sign_in_confirm";
-                    else if (scene == "chat") {
+                    else if (scene == "chat" && rulesPage == 0) {
                         if (connectionLost) {
                             ReconnectToTCPServer();
                         } else {
@@ -311,12 +311,10 @@ int main(int argc, char **argv)
                     }
                 }
                 else if (PointInRect(mx, my, button_left_bottom)) {
-                    if (scene == "sign_up" || scene == "sign_in" || scene == "login_failed" || scene == "register_failed" || scene == "register_success" || scene == "chat") {
+                    if (scene == "sign_up" || scene == "sign_in" || scene == "login_failed" || scene == "register_failed" || scene == "register_success" || scene == "chat" && rulesPage == 0) {
                         if (scene == "chat") {
                             username = "";
                             password = "";
-
-                            rulesPage = 0;
                         }
 
                         scene = "selection_menu";
