@@ -224,7 +224,7 @@ int main(int argc, char **argv)
                         else if (reply.find("\"data\":\"USR_IN_USE\"") != std::string::npos) {
                             serverResponse.clear();
                             failedReason = "Username already in use.";
-                            scene = "register_failed";
+                            scene = "failed";
                         }
                         else {
                             // Extract the "data" value
@@ -238,7 +238,7 @@ int main(int argc, char **argv)
                             }
 
                             failedReason = "An Unknown Error Occurred.";
-                            scene = "register_failed";
+                            scene = "failed";
                         }
                     }
                     else if (scene == "sign_in_confirm") {
@@ -255,17 +255,17 @@ int main(int argc, char **argv)
                         else if (reply.find("\"data\":\"LOGIN_FAKE_ACC\"") != std::string::npos) {
                             serverResponse.clear();
                             failedReason = "User not found.";
-                            scene = "login_failed";
+                            scene = "failed";
                         }
                         else if (reply.find("\"data\":\"LOGIN_WRONG_PASS\"") != std::string::npos) {
                             serverResponse.clear();
                             failedReason = "Incorrect password.";
-                            scene = "login_failed";
+                            scene = "failed";
                         }
                         else if (reply.find("\"data\":\"frick you you're BANNED\"") != std::string::npos) {
                             serverResponse.clear();
                             failedReason = "Banned User.";
-                            scene = "login_failed";
+                            scene = "failed";
                         }
                         else {
                             // Extract the "data" value
@@ -279,7 +279,7 @@ int main(int argc, char **argv)
                             }
 
                             failedReason = "An Unknown Error Occurred.";
-                            scene = "login_failed";
+                            scene = "failed";
                         }
                     }
                 }
@@ -298,8 +298,24 @@ int main(int argc, char **argv)
                     }
                 }
                 else if (PointInRect(mx, my, button_right_bottom)) {
-                    if (scene == "sign_up") scene = "sign_up_confirm";
-                    else if (scene == "sign_in") scene = "sign_in_confirm";
+                    if (scene == "sign_up") {
+                        if (username.empty() || password.empty()) {
+                            failedReason = "Username and password cannot be empty.";
+                            scene = "failed";
+                        }
+                        else {
+                            scene = "sign_up_confirm";
+                        }
+                    }
+                    else if (scene == "sign_in") {
+                        if (username.empty() || password.empty()) {
+                            failedReason = "Username and password cannot be empty.";
+                            scene = "failed";
+                        }
+                        else {
+                            scene = "sign_in_confirm";
+                        }
+                    }
                     else if (scene == "chat" && rulesPage == 0) {
                         if (connectionLost) {
                             ReconnectToTCPServer();
@@ -311,7 +327,7 @@ int main(int argc, char **argv)
                     }
                 }
                 else if (PointInRect(mx, my, button_left_bottom)) {
-                    if (scene == "sign_up" || scene == "sign_in" || scene == "login_failed" || scene == "register_failed" || scene == "register_success" || scene == "chat" && rulesPage == 0) {
+                    if (scene == "sign_up" || scene == "sign_in" || scene == "failed" || scene == "register_success" || scene == "chat" && rulesPage == 0) {
                         if (scene == "chat") {
                             username = "";
                             password = "";
@@ -390,15 +406,8 @@ int main(int argc, char **argv)
                 if (!serverResponse.empty())
                     DrawText(tvRenderer, ("Debug: " + serverResponse).c_str(), 0, 1040, 32, tvTextColor);
             }
-            else if (scene == "register_failed") {
-                DrawText(tvRenderer, "Account already exists.", 650, 300, 64, tvTextColor);
-                DrawText(tvRenderer, "Press B to go back to the account screen.", 250, 400, 64, tvTextColor);
-
-                if (!serverResponse.empty())
-                    DrawText(tvRenderer, ("Debug: " + serverResponse).c_str(), 0, 1040, 32, tvTextColor);
-            }
-            else if (scene == "login_failed") {
-                DrawText(tvRenderer, failedReason.c_str(), 450, 300, 64, tvTextColor);
+            else if (scene == "failed") {
+                DrawText(tvRenderer, failedReason.c_str(), 250, 300, 64, tvTextColor);
                 DrawText(tvRenderer, "Press B to go back to the account screen.", 250, 400, 64, tvTextColor);
 
                 if (!serverResponse.empty())

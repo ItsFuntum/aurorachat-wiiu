@@ -44,7 +44,7 @@ void handle_button_down(const SDL_ControllerButtonEvent& e)
                 scene = "selection_menu";
             }
         }
-        else if (scene == "login_failed" || scene == "register_failed") {
+        else if (scene == "failed") {
             if (e.button == SDL_CONTROLLER_BUTTON_B) {
                 scene = "selection_menu";
             }
