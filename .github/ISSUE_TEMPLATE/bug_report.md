@@ -3,7 +3,7 @@ name: Bug report
 about: Create a report to help us improve
 title: Not applicable. But...
 labels: bug
-assignees: VirtuallyExisting, cool-guy-awesome
+assignees: ItsFuntum
 
 ---
 
@@ -24,8 +24,9 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Version information (please complete the following information):**
- - OS: [e.g. 11.17.0-50U]
-- Version [e.g. v0.0.3.12398791325129058372157809323589061]
+ - System Software Version: [e.g. 5.5.6 U]
+ - Environment: [e.g. Aroma]
+ - Any Important Hardware Information: [e.g. My Wii U has a Hynix chip and I replaced the internal storage with redNAND]
 
 **Additional context**
 Add any other context about the problem here.

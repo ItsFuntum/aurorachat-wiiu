@@ -1,9 +1,9 @@
 ---
 name: Feature request
-about: Ask us to add a feature to aurorachat
+about: Ask us to add a feature to aurorachat for Wii U
 title: Not applicable.
 labels: enhancement
-assignees: VirtuallyExisting, cool-guy-awesome
+assignees: ItsFuntum
 
 ---
 
