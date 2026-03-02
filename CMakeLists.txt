@@ -24,6 +24,7 @@ target_link_libraries(aurorachat-wiiu
     SDL2
     SDL2_ttf
     SDL2_image
+    webp
     freetype
     harfbuzz
     png
