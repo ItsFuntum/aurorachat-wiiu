@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> # THIS REPOSITORY IS DEPRECATED. THE WII U CLIENT HAS BEEN MOVED TO https://github.com/Unitendo/aurorachat-wiiu
+
 # [aurorachat](https://github.com/mii-man/aurorachat) for Wii U
 A chatting application originally for the Nintendo 3DS and 2DS systems, now on Wii U.
 
